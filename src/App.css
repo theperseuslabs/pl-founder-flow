@@ -223,3 +223,59 @@
     align-items: center;
   }
 }
+
+@media (max-width: 600px) {
+  .ff-root {
+    padding: 0 !important;
+  }
+  .ff-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.2rem 1rem 1rem 1rem;
+    border-radius: 0 0 1.2rem 1.2rem;
+  }
+  .ff-logo {
+    margin-bottom: 0.7rem;
+  }
+  .ff-nav {
+    gap: 1rem;
+  }
+  .ff-hero {
+    flex-direction: column;
+    margin: 1rem 0.5rem 0 0.5rem;
+    padding: 1.2rem 0.5rem 1rem 0.5rem;
+    border-radius: 1.2rem;
+  }
+  .ff-hero-text h1 {
+    font-size: 1.3rem;
+  }
+  .ff-hero-content {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+  .ff-how {
+    margin: 1.5rem 0.5rem 0 0.5rem;
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    border-radius: 1.2rem;
+  }
+  .ff-how h2 {
+    font-size: 1.1rem;
+  }
+  .ff-footer {
+    font-size: 0.95rem;
+    padding-bottom: 1rem;
+  }
+  .ff-step {
+    min-width: 120px;
+    max-width: 100%;
+    font-size: 0.95rem;
+  }
+  .ff-step-title {
+    font-size: 0.98rem;
+  }
+  .ff-input-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.8rem 0;
+  }
+}

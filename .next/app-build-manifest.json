@@ -1,34 +1,26 @@
 {
   "pages": {
-    "/_not-found/page": [
-      "static/chunks/webpack-40b0fa41422ab0ec.js",
-      "static/chunks/fd9d1056-749e5812300142af.js",
-      "static/chunks/117-70b26255afcbecca.js",
-      "static/chunks/main-app-33161aed3757ef53.js",
-      "static/chunks/app/_not-found/page-dcb83ba3e4d0aafd.js"
-    ],
     "/layout": [
-      "static/chunks/webpack-40b0fa41422ab0ec.js",
-      "static/chunks/fd9d1056-749e5812300142af.js",
-      "static/chunks/117-70b26255afcbecca.js",
-      "static/chunks/main-app-33161aed3757ef53.js",
-      "static/css/60e0cf4f66de3992.css",
-      "static/chunks/app/layout-b109fb65a7519ec3.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ],
     "/reddit-dm/page": [
-      "static/chunks/webpack-40b0fa41422ab0ec.js",
-      "static/chunks/fd9d1056-749e5812300142af.js",
-      "static/chunks/117-70b26255afcbecca.js",
-      "static/chunks/main-app-33161aed3757ef53.js",
-      "static/chunks/app/reddit-dm/page-bcf3d4139bfb3436.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/reddit-dm/page.js"
     ],
     "/page": [
-      "static/chunks/webpack-40b0fa41422ab0ec.js",
-      "static/chunks/fd9d1056-749e5812300142af.js",
-      "static/chunks/117-70b26255afcbecca.js",
-      "static/chunks/main-app-33161aed3757ef53.js",
-      "static/css/1d7661644227e1ba.css",
-      "static/chunks/app/page-409288ff236c5800.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/page.css",
+      "static/chunks/app/page.js"
+    ],
+    "/_not-found/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }
