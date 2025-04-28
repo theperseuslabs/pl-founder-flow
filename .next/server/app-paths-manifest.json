@@ -1,3 +1,4 @@
 {
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/reddit-dm/page": "app/reddit-dm/page.js"
 }

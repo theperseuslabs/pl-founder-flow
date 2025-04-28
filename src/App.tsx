@@ -1,6 +1,8 @@
 import './App.css';
+import { useRouter } from 'next/navigation';
 
 function App() {
+  const router = useRouter();
   return (
     <div className="ff-root">
       {/* Header */}
@@ -27,7 +29,7 @@ function App() {
             </span>
             <h1>Scale Your Reddit Outelaat Outra with<br />with Automated DMs</h1>
             <p className="ff-hero-sub">Automated DMs</p>
-            <button className="ff-input-btn">Input Form</button>
+            <button className="ff-input-btn" onClick={() => router.push('/reddit-dm')}>Input Form</button>
           </div>
           <div className="ff-hero-image">
             {/* Placeholder for monitor illustration */}
