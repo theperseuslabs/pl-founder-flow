@@ -1,7 +1,34 @@
 'use client'
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function RedditDMPage() {
+  const [fields, setFields] = useState({
+    communities: '',
+    pitch: '',
+    icp: '',
+    email: '',
+  });
+  const [touched, setTouched] = useState({
+    communities: false,
+    pitch: false,
+    icp: false,
+    email: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFields({ ...fields, [e.target.name]: e.target.value });
+  };
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTouched({ ...touched, [e.target.name]: true });
+  };
+  const allFilled = Object.values(fields).every(Boolean);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setTimeout(() => setSubmitted(false), 2500);
+  };
+
   return (
     <div className="reddit-dm-container">
       <div className="reddit-dm-header">
@@ -17,25 +44,82 @@ export default function RedditDMPage() {
       <p className="reddit-dm-desc">
         The user provides, communities of interest, product elevator pitch, icp definition, email. When they hit submit, it triggers an n8n workflow to find relevant subreddits, top potential users that fit the elevator pitch and optimized reddit DM copy on the page.
       </p>
-      <form className="reddit-dm-form">
-        <div>
+      <form className="reddit-dm-form" onSubmit={handleSubmit} autoComplete="off">
+        <div className="reddit-dm-field">
           <label>Communities of interest</label>
-          <input type="text" placeholder="Add communities of interest" />
+          <div className="reddit-dm-input-wrap">
+            <span className="reddit-dm-input-icon">🌐</span>
+            <input
+              name="communities"
+              type="text"
+              placeholder="Add communities of interest"
+              value={fields.communities}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              maxLength={60}
+              className={touched.communities && !fields.communities ? 'invalid' : ''}
+            />
+            <span className="reddit-dm-char-count">{fields.communities.length}/60</span>
+          </div>
         </div>
-        <div>
+        <div className="reddit-dm-field">
           <label>Product elevator pitch</label>
-          <input type="text" placeholder="Add product elevator pitch" />
+          <div className="reddit-dm-input-wrap">
+            <span className="reddit-dm-input-icon">💡</span>
+            <input
+              name="pitch"
+              type="text"
+              placeholder="Add product elevator pitch"
+              value={fields.pitch}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              maxLength={80}
+              className={touched.pitch && !fields.pitch ? 'invalid' : ''}
+            />
+            <span className="reddit-dm-char-count">{fields.pitch.length}/80</span>
+          </div>
         </div>
-        <div>
+        <div className="reddit-dm-field">
           <label>ICP definition</label>
-          <input type="text" placeholder="Add definition" />
+          <div className="reddit-dm-input-wrap">
+            <span className="reddit-dm-input-icon">🧑‍💼</span>
+            <input
+              name="icp"
+              type="text"
+              placeholder="Add definition"
+              value={fields.icp}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              maxLength={60}
+              className={touched.icp && !fields.icp ? 'invalid' : ''}
+            />
+            <span className="reddit-dm-char-count">{fields.icp.length}/60</span>
+          </div>
         </div>
-        <div>
+        <div className="reddit-dm-field">
           <label>Email</label>
-          <input type="email" placeholder="Email" />
+          <div className="reddit-dm-input-wrap">
+            <span className="reddit-dm-input-icon">✉️</span>
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              value={fields.email}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              maxLength={60}
+              className={touched.email && !fields.email ? 'invalid' : ''}
+            />
+            <span className="reddit-dm-char-count">{fields.email.length}/60</span>
+          </div>
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={!allFilled || submitted} className={allFilled ? 'active' : ''}>
+          {submitted ? 'Submitted!' : 'Submit'}
+        </button>
       </form>
+      {submitted && (
+        <div className="reddit-dm-success">🎉 Your info was submitted!</div>
+      )}
       <style jsx>{`
         .reddit-dm-container {
           max-width: 600px;
@@ -92,21 +176,52 @@ export default function RedditDMPage() {
           flex-direction: column;
           gap: 22px;
         }
-        .reddit-dm-form label {
+        .reddit-dm-field label {
           font-weight: 600;
           color: #222;
           font-size: 16px;
           margin-bottom: 6px;
           display: block;
         }
-        .reddit-dm-form input {
-          width: 100%;
-          padding: 13px 14px;
+        .reddit-dm-input-wrap {
+          display: flex;
+          align-items: center;
+          background: #f8fafc;
           border-radius: 8px;
           border: 1px solid #e5e7eb;
+          padding: 0 10px;
+          transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .reddit-dm-input-wrap:focus-within {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 2px #2563eb22;
+        }
+        .reddit-dm-input-icon {
+          margin-right: 6px;
+          font-size: 1.1em;
+          opacity: 0.7;
+        }
+        .reddit-dm-char-count {
+          margin-left: auto;
+          font-size: 0.92em;
+          color: #94a3b8;
+          min-width: 48px;
+          text-align: right;
+        }
+        .reddit-dm-form input {
+          border: none;
+          outline: none;
+          background: transparent;
+          width: 100%;
+          padding: 13px 0;
           font-size: 16px;
-          margin-top: 4px;
-          background: #f8fafc;
+          transition: background 0.2s;
+        }
+        .reddit-dm-form input:focus {
+          background: #eef2ff;
+        }
+        .reddit-dm-form input.invalid {
+          background: #fff0f0;
         }
         .reddit-dm-form button {
           margin-top: 10px;
@@ -120,6 +235,34 @@ export default function RedditDMPage() {
           cursor: pointer;
           box-shadow: 0 2px 8px 0 rgba(23,70,217,0.08);
           width: 100%;
+          opacity: 0.7;
+          transition: background 0.2s, opacity 0.2s, transform 0.1s;
+        }
+        .reddit-dm-form button.active {
+          opacity: 1;
+          background: #2563eb;
+        }
+        .reddit-dm-form button:active {
+          transform: scale(0.98);
+        }
+        .reddit-dm-form button:disabled {
+          cursor: not-allowed;
+          background: #bcd0fa;
+        }
+        .reddit-dm-success {
+          margin-top: 22px;
+          background: #e0fbe0;
+          color: #166534;
+          border-radius: 8px;
+          padding: 14px 0;
+          text-align: center;
+          font-weight: 600;
+          font-size: 1.1em;
+          animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: none; }
         }
         @media (max-width: 600px) {
           .reddit-dm-container {
@@ -143,7 +286,7 @@ export default function RedditDMPage() {
           }
           .reddit-dm-form input {
             font-size: 15px;
-            padding: 11px 10px;
+            padding: 11px 0;
           }
           .reddit-dm-form button {
             font-size: 1rem;
