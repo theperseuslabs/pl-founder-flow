@@ -586,6 +586,8 @@
   border-radius: 1rem;
   padding: 1.5rem;
   border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
 }
 
 .ff-subreddit-card h3 {
@@ -601,14 +603,43 @@
   margin-bottom: 1rem;
 }
 
-.ff-subreddit-card p {
+.ff-subreddit-description {
+  position: relative;
+  max-height: 3em;
+  overflow: hidden;
+  margin-bottom: 1.2rem;
+  transition: max-height 0.3s ease;
+}
+
+.ff-subreddit-description.expanded {
+  max-height: none;
+}
+
+.ff-subreddit-description p {
   font-size: 0.95rem;
   color: #475569;
-  margin-bottom: 1.2rem;
   line-height: 1.5;
+  margin: 0;
+}
+
+.ff-show-more-btn {
+  background: none;
+  border: none;
+  color: #FF4500;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.ff-show-more-btn:hover {
+  color: #e03d00;
 }
 
 .ff-subreddit-link {
+  margin-top: auto;
   display: inline-block;
   background: #FF4500;
   color: white;
@@ -618,6 +649,7 @@
   border-radius: 0.5rem;
   text-decoration: none;
   transition: background 0.2s;
+  text-align: center;
 }
 
 .ff-subreddit-link:hover {
@@ -752,4 +784,93 @@
   .ff-dm-template {
     padding: 1.2rem;
   }
+}
+
+.ff-results-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.ff-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.7rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  flex: 1;
+}
+
+.ff-action-icon {
+  font-size: 1.2em;
+}
+
+.ff-action-btn.reddit-btn{
+  background: #FF4500;
+  color: white;
+}
+
+.ff-action-btn.reddit-btn:hover {
+  background: #e03d00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(255,69,0,0.12);
+}
+
+.ff-action-btn.email-btn {
+  background: #f8fafc;
+  color: #222;
+  border: 1px solid #eee;
+}
+
+.ff-action-btn.email-btn:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(0,0,0,0.05);
+}
+
+@media (max-width: 600px) {
+  .ff-results-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .ff-action-btn {
+    width: 100%;
+  }
+}
+
+/* Remove old loading spinner styles */
+.ff-loading-spinner {
+  display: none;
+}
+
+/* Add new styles for react-spinners integration */
+.ff-submit-btn.loading,
+.ff-action-btn.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.ff-submit-btn.loading span,
+.ff-action-btn.loading span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure proper alignment of spinner and text */
+.ff-submit-btn,
+.ff-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }

@@ -1,7 +1,7 @@
 import './App.css';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { ClipLoader } from 'react-spinners';
 
 interface Subreddit {
   name: string;
@@ -24,18 +24,30 @@ interface ApiResponse {
 }
 
 function App() {
-  const router = useRouter();
   const [isHowItWorksExpanded, setIsHowItWorksExpanded] = useState(false);
-  const [fields, setFields] = useState({
-    productName: '',
-    productUrl: '',
-    problemSolved: '',
-    elevatorPitch: '',
-    keywords: '',
-    ask: '',
-    redditHandle: '',
-    email: '',
-    subreddit: '',
+  const [expandedCards, setExpandedCards] = useState<number[]>([]);
+  const [fields, setFields] = useState(() => {
+    // Initialize fields from localStorage if available
+    const savedFields = localStorage.getItem('founderflow_form_data');
+    if (savedFields) {
+      try {
+        return JSON.parse(savedFields);
+      } catch (error) {
+        console.error('Error loading saved form data:', error);
+      }
+    }
+    // Default values if no saved data
+    return {
+      productName: '',
+      productUrl: '',
+      problemSolved: '',
+      elevatorPitch: '',
+      keywords: '',
+      ask: '',
+      redditHandle: '',
+      email: '',
+      subreddit: '',
+    };
   });
   const [touched, setTouched] = useState({
     productName: false,
@@ -52,6 +64,13 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ApiResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingDM, setIsSendingDM] = useState(false);
+
+  // Save form data to localStorage whenever fields change
+  useEffect(() => {
+    localStorage.setItem('founderflow_form_data', JSON.stringify(fields));
+  }, [fields]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -60,9 +79,9 @@ function App() {
     if (name === 'subreddit') {
       // Remove any spaces, commas, and 'r/' prefix if present
       const cleanValue = value.replace(/[\s,]+/g, '').replace(/^r\//, '');
-      setFields(prev => ({ ...prev, [name]: cleanValue }));
+      setFields((prev: typeof fields) => ({ ...prev, [name]: cleanValue }));
     } else {
-      setFields(prev => ({ ...prev, [name]: value }));
+      setFields((prev: typeof fields) => ({ ...prev, [name]: value }));
     }
   };
   
@@ -76,7 +95,7 @@ function App() {
       fields.productUrl.trim() !== '' &&
       // fields.problemSolved.trim().length >= 100 &&
       fields.elevatorPitch.trim().length >= 100 &&
-      fields.ask.trim() !== '' &&
+      // fields.ask.trim() !== '' &&
       fields.redditHandle.trim() !== '' &&
       fields.email.trim() !== '' &&
       fields.subreddit.trim() !== ''
@@ -89,7 +108,9 @@ function App() {
     e.preventDefault();
     setSubmitted(true);
     setLoading(true);
+    setIsSubmitting(true);
     setError(null);
+    setResults([]);
     
     try {
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/11fe63b2-cbf2-4010-91c0-6e82441bcc5a', {
@@ -119,6 +140,7 @@ function App() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+      setIsSubmitting(false);
       setTimeout(() => setSubmitted(false), 2500);
     }
   };
@@ -145,6 +167,64 @@ function App() {
       description: "Build and nurture a thriving community around your brand."
     }
   ];
+
+  const toggleCardExpansion = (index: number) => {
+    setExpandedCards(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  const handleEmailResults = () => {
+    const subject = "Your Reddit DM Campaign Results";
+    const body = `Here are your Reddit DM campaign results:\n\n` +
+      `Product: ${fields.productName}\n` +
+      `Subreddit: ${fields.subreddit}\n\n` +
+      `Recommended Subreddits:\n` +
+      results.map(result => 
+        result.subreddits?.map(sub => 
+          `- r/${sub.name} (${sub.subscribers.toLocaleString()} subscribers)\n` +
+          `  ${sub.description}\n`
+        ).join('\n')
+      ).join('\n') +
+      `\nDM Template:\n` +
+      results.map(result => 
+        result.output ? 
+          `Subject: ${result.output.subject}\n\n` +
+          `${result.output.body}\n` :
+          ''
+      ).join('\n');
+
+    window.location.href = `mailto:${fields.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  const handleRedditDM = async () => {
+    setIsSendingDM(true);
+    try {
+      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/sendRedditDM', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          custRedditHandle: fields.redditHandle,
+          body: results[1]?.output?.body || '',
+          subject: results[1]?.output?.subject || ''
+        }),
+      });
+      console.log(fields)
+      console.log(results)
+
+      if (!response.ok) {
+        throw new Error('Failed to send Reddit DM');
+      }      
+    } catch (error) {
+      setError('Failed to send Reddit DM. Please try again.');
+    } finally {
+      setIsSendingDM(false);
+    }
+  };
 
   return (
     <div className="ff-root">
@@ -420,8 +500,17 @@ function App() {
               )}
             </div>
             
-            <button type="submit" disabled={!allFilled || submitted || loading} className={`ff-submit-btn ${allFilled ? 'active' : ''}`}>
-              {loading ? 'Processing...' : submitted ? 'Submitted!' : 'Submit'}
+            <button 
+              type="submit" 
+              disabled={!allFilled || submitted || loading} 
+              className={`ff-submit-btn ${allFilled ? 'active' : ''} ${isSubmitting ? 'loading' : ''}`}
+            >
+              {isSubmitting ? (
+                <>
+                  <ClipLoader size={20} color="#ffffff" />
+                  <span style={{ marginLeft: '8px' }}>Processing...</span>
+                </>
+              ) : submitted ? 'Submitted!' : 'Submit'}
             </button>
           </form>
           
@@ -445,7 +534,15 @@ function App() {
                             <div className="ff-subreddit-stats">
                               <span>{subreddit.subscribers.toLocaleString()} subscribers</span>
                             </div>
-                            <p>{subreddit.description}</p>
+                            <div className={`ff-subreddit-description ${expandedCards.includes(idx) ? 'expanded' : ''}`}>
+                              <p>{subreddit.description}</p>
+                            </div>
+                            <button 
+                              className="ff-show-more-btn"
+                              onClick={() => toggleCardExpansion(idx)}
+                            >
+                              {expandedCards.includes(idx) ? 'Show less' : 'Show more'}
+                            </button>
                             <a href={subreddit.url} target="_blank" rel="noopener noreferrer" className="ff-subreddit-link">
                               Visit Subreddit
                             </a>
@@ -468,6 +565,43 @@ function App() {
                   )}
                 </div>
               ))}
+              
+              <div className="ff-results-actions">
+                <button 
+                  className={`ff-action-btn email-btn ${isSendingDM ? 'loading' : ''}`}
+                  onClick={handleEmailResults}
+                  disabled={isSendingDM}
+                >
+                  {isSendingDM ? (
+                    <>
+                      <ClipLoader size={20} color="#ffffff" />
+                      <span style={{ marginLeft: '8px' }}>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="ff-action-icon">✉️</span>
+                      Send to Email
+                    </>
+                  )}
+                </button>
+                <button 
+                  className={`ff-action-btn reddit-btn ${isSendingDM ? 'loading' : ''}`}
+                  onClick={handleRedditDM}
+                  disabled={isSendingDM}
+                >
+                  {isSendingDM ? (
+                    <>
+                      <ClipLoader size={20} color="#ffffff" />
+                      <span style={{ marginLeft: '8px' }}>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="ff-action-icon">💬</span>
+                      Send as Reddit DM
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
