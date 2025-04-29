@@ -27,13 +27,15 @@ function App() {
   const [isHowItWorksExpanded, setIsHowItWorksExpanded] = useState(false);
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
   const [fields, setFields] = useState(() => {
-    // Initialize fields from localStorage if available
-    const savedFields = localStorage.getItem('founderflow_form_data');
-    if (savedFields) {
-      try {
-        return JSON.parse(savedFields);
-      } catch (error) {
-        console.error('Error loading saved form data:', error);
+    // Initialize fields from localStorage if available and in browser environment
+    if (typeof window !== 'undefined') {
+      const savedFields = localStorage.getItem('founderflow_form_data');
+      if (savedFields) {
+        try {
+          return JSON.parse(savedFields);
+        } catch (error) {
+          console.error('Error loading saved form data:', error);
+        }
       }
     }
     // Default values if no saved data
