@@ -169,36 +169,96 @@
   border-radius: 2.5rem;
   box-shadow: 0 4px 32px 0 rgba(0,0,0,0.04);
   padding: 2.5rem 2rem 2.5rem 2rem;
+  transition: all 0.3s ease;
 }
+
+.ff-how-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.ff-how-header:hover {
+  opacity: 0.8;
+}
+
 .ff-how h2 {
   font-size: 1.7rem;
   font-weight: 700;
-  margin-bottom: 2.2rem;
+  margin: 0;
   text-align: left;
 }
+
+.ff-how-arrow {
+  font-size: 1.8rem;
+  color: #666;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
 .ff-how-steps {
   display: flex;
-  gap: 2.5rem;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-.ff-step {
-  flex: 1 1 0;
-  min-width: 180px;
-  max-width: 220px;
-  display: flex;
   flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.ff-step {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.ff-step:hover {
+  border-color: #ddd;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.ff-step-header {
+  display: flex;
   align-items: center;
-  text-align: center;
-  gap: 1.1rem;
+  padding: 1.5rem;
+  gap: 1rem;
 }
+
 .ff-step-icon {
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
 }
+
 .ff-step-title {
+  flex-grow: 1;
   font-size: 1.08rem;
   font-weight: 600;
   color: #222;
+  text-align: left;
+}
+
+.ff-step-content {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ff-footer {
@@ -265,10 +325,16 @@
     font-size: 0.95rem;
     padding-bottom: 1rem;
   }
-  .ff-step {
-    min-width: 120px;
-    max-width: 100%;
-    font-size: 0.95rem;
+  .ff-how-arrow {
+    font-size: 1.5rem;
+    width: 28px;
+    height: 28px;
+  }
+  .ff-step-header {
+    padding: 1rem;
+  }
+  .ff-step-content {
+    padding: 0 1rem 1rem 1rem;
   }
   .ff-step-title {
     font-size: 0.98rem;
@@ -277,5 +343,413 @@
     width: 100%;
     font-size: 1rem;
     padding: 0.8rem 0;
+  }
+}
+
+.ff-form-section {
+  margin: 3.5rem 2.5rem 0 2.5rem;
+  background: #fff;
+  border-radius: 2.5rem;
+  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.04);
+  padding: 2.5rem 2rem 2.5rem 2rem;
+}
+
+.ff-form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.ff-form-container h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.ff-form-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.ff-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ff-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ff-form-group label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222;
+  text-align: left;
+}
+
+.ff-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 0.7rem;
+  border: 1px solid #eee;
+  padding: 0 1rem;
+  transition: all 0.2s ease;
+}
+
+.ff-input-wrap:focus-within {
+  border-color: #FF4500;
+  box-shadow: 0 0 0 3px rgba(255,69,0,0.1);
+}
+
+.ff-input-wrap.textarea-wrap {
+  align-items: flex-start;
+  padding: 0.8rem 1rem;
+}
+
+.ff-input-icon {
+  margin-right: 0.8rem;
+  font-size: 1.1em;
+  opacity: 0.7;
+  margin-top: 3px;
+}
+
+.ff-char-count {
+  margin-left: auto;
+  font-size: 0.92em;
+  color: #94a3b8;
+  min-width: 48px;
+  text-align: right;
+}
+
+.ff-form input, 
+.ff-form textarea, 
+.ff-form select {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  padding: 0.8rem 0.5rem;
+  font-size: 1rem;
+  transition: background 0.2s;
+  font-family: inherit;
+}
+
+.ff-form input::placeholder,
+.ff-form textarea::placeholder,
+.ff-form select::placeholder {
+  color: #94a3b8;
+}
+
+.ff-form select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  cursor: pointer;
+  background-color: #f8fafc;
+}
+
+.ff-form select:hover {
+  background-color: #f1f5f9;
+}
+
+.ff-form select:focus {
+  background-color: #fff;
+  border-color: #FF4500;
+  box-shadow: 0 0 0 3px rgba(255,69,0,0.1);
+}
+
+.ff-input-wrap:has(select) {
+  cursor: pointer;
+}
+
+.ff-input-wrap:has(select):hover {
+  background-color: #f1f5f9;
+}
+
+.ff-input-wrap:has(select):focus-within {
+  background-color: #fff;
+}
+
+.ff-form select option {
+  padding: 0.8rem;
+  background-color: #fff;
+  color: #222;
+}
+
+.ff-form select option:hover {
+  background-color: #f1f5f9;
+}
+
+.ff-form textarea {
+  min-height: 100px;
+  resize: vertical;
+  padding: 0.5rem 0;
+}
+
+.ff-form input:focus, 
+.ff-form textarea:focus, 
+.ff-form select:focus {
+  background: transparent;
+}
+
+.ff-form input.invalid, 
+.ff-form textarea.invalid, 
+.ff-form select.invalid {
+  background: #fff0f0;
+}
+
+.ff-error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+}
+
+.ff-submit-btn {
+  background: #FF4500;
+  color: #fff;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+  box-shadow: 0 2px 8px 0 rgba(255,69,0,0.08);
+  opacity: 0.7;
+}
+
+.ff-submit-btn.active {
+  opacity: 1;
+}
+
+.ff-submit-btn:hover {
+  background: #e03d00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px 0 rgba(255,69,0,0.12);
+}
+
+.ff-submit-btn:active {
+  transform: translateY(0);
+}
+
+.ff-submit-btn:disabled {
+  cursor: not-allowed;
+  background: #ffa07a;
+}
+
+.ff-error-message {
+  margin-top: 1.5rem;
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 0.7rem;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  animation: fadeIn 0.5s;
+}
+
+.ff-results {
+  margin-top: 2.5rem;
+  border-top: 1px solid #eee;
+  padding-top: 2rem;
+}
+
+.ff-result-section {
+  margin-bottom: 2rem;
+}
+
+.ff-result-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #222;
+}
+
+.ff-subreddits-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.ff-subreddit-card {
+  background: #f8fafc;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px solid #eee;
+}
+
+.ff-subreddit-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.8rem 0;
+  color: #222;
+}
+
+.ff-subreddit-stats {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 1rem;
+}
+
+.ff-subreddit-card p {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 1.2rem;
+  line-height: 1.5;
+}
+
+.ff-subreddit-link {
+  display: inline-block;
+  background: #FF4500;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.ff-subreddit-link:hover {
+  background: #e03d00;
+}
+
+.ff-dm-template {
+  background: #f8fafc;
+  border-radius: 1rem;
+  padding: 1.8rem;
+  border: 1px solid #eee;
+  margin-top: 2rem;
+}
+
+.ff-dm-content h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 1.2rem 0;
+  color: #222;
+}
+
+.ff-dm-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.markdown-content {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.markdown-content p {
+  margin: 0 0 1rem 0;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+}
+
+.markdown-content em {
+  font-style: italic;
+}
+
+.markdown-content a {
+  color: #FF4500;
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin: 0 0 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.3rem;
+}
+
+.markdown-content code {
+  background-color: #f1f5f9;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.3rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background-color: #f1f5f9;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0 0 1rem 0;
+}
+
+.markdown-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.markdown-content blockquote {
+  border-left: 4px solid #e2e8f0;
+  margin: 0 0 1rem 0;
+  padding-left: 1rem;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .ff-form-section {
+    margin: 1.5rem 0.5rem 0 0.5rem;
+    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+    border-radius: 1.2rem;
+  }
+
+  .ff-form-container h2 {
+    font-size: 1.1rem;
+  }
+
+  .ff-form-subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ff-form {
+    gap: 1.2rem;
+  }
+
+  .ff-input-wrap {
+    padding: 0 0.8rem;
+  }
+
+  .ff-form input, 
+  .ff-form textarea, 
+  .ff-form select {
+    font-size: 0.95rem;
+    padding: 0.7rem 0;
+  }
+
+  .ff-submit-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.8rem 0;
+  }
+
+  .ff-subreddits-list {
+    grid-template-columns: 1fr;
+  }
+
+  .ff-subreddit-card, 
+  .ff-dm-template {
+    padding: 1.2rem;
   }
 }

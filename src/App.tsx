@@ -1,8 +1,151 @@
 import './App.css';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+
+interface Subreddit {
+  name: string;
+  subscribers: number;
+  accounts_active: number;
+  description: string;
+  url: string;
+  matches: number;
+}
+
+interface Output {
+  subject: string;
+  body: string;
+  custRedditHandle: string;
+}
+
+interface ApiResponse {
+  subreddits?: Subreddit[];
+  output?: Output;
+}
 
 function App() {
   const router = useRouter();
+  const [isHowItWorksExpanded, setIsHowItWorksExpanded] = useState(false);
+  const [fields, setFields] = useState({
+    productName: '',
+    productUrl: '',
+    problemSolved: '',
+    elevatorPitch: '',
+    keywords: '',
+    ask: '',
+    redditHandle: '',
+    email: '',
+    subreddit: '',
+  });
+  const [touched, setTouched] = useState({
+    productName: false,
+    productUrl: false,
+    problemSolved: false,
+    elevatorPitch: false,
+    keywords: false,
+    ask: false,
+    redditHandle: false,
+    email: false,
+    subreddit: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<ApiResponse[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    // Special handling for subreddit input
+    if (name === 'subreddit') {
+      // Remove any spaces, commas, and 'r/' prefix if present
+      const cleanValue = value.replace(/[\s,]+/g, '').replace(/^r\//, '');
+      setFields(prev => ({ ...prev, [name]: cleanValue }));
+    } else {
+      setFields(prev => ({ ...prev, [name]: value }));
+    }
+  };
+  
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setTouched({ ...touched, [e.target.name]: true });
+  };
+  
+  const validateFields = () => {
+    return (
+      fields.productName.trim() !== '' &&
+      fields.productUrl.trim() !== '' &&
+      // fields.problemSolved.trim().length >= 100 &&
+      fields.elevatorPitch.trim().length >= 100 &&
+      fields.ask.trim() !== '' &&
+      fields.redditHandle.trim() !== '' &&
+      fields.email.trim() !== '' &&
+      fields.subreddit.trim() !== ''
+    );
+  };
+  
+  const allFilled = validateFields();
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/11fe63b2-cbf2-4010-91c0-6e82441bcc5a', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prod_biz_name: fields.productName,
+          prod_URL: fields.productUrl,
+          pitch: fields.elevatorPitch,
+          problem: fields.problemSolved,
+          keywords: fields.keywords,
+          ask: fields.ask,
+          custRedditHandle: fields.redditHandle,
+          custEmailAddress: fields.email
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch results');
+      }
+      
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+      setTimeout(() => setSubmitted(false), 2500);
+    }
+  };
+
+  const steps = [
+    {
+      title: "Stelbed huck lead generation groeffons",
+      color: "#FF4500",
+      description: "Automate your lead generation process with our advanced tools and workflows."
+    },
+    {
+      title: "Increased shneatioq enggeration anert",
+      color: "#6EC6CA",
+      description: "Boost engagement rates through targeted and personalized interactions."
+    },
+    {
+      title: "Cod catse twartion engagemofon a verd growthfl",
+      color: "#F7C873",
+      description: "Convert more leads into customers with optimized conversion strategies."
+    },
+    {
+      title: "Community growth",
+      color: "#B3C2D1",
+      description: "Build and nurture a thriving community around your brand."
+    }
+  ];
+
   return (
     <div className="ff-root">
       {/* Header */}
@@ -29,7 +172,10 @@ function App() {
             </span>
             <h1>Scale Your Reddit Outelaat Outra with<br />with Automated DMs</h1>
             <p className="ff-hero-sub">Automated DMs</p>
-            <button className="ff-input-btn" onClick={() => router.push('/reddit-dm')}>Input Form</button>
+            <button className="ff-input-btn" onClick={() => {
+              const element = document.getElementById('reddit-dm-section');
+              element?.scrollIntoView({ behavior: 'smooth' });
+            }}>Input Form</button>
           </div>
           <div className="ff-hero-image">
             {/* Placeholder for monitor illustration */}
@@ -52,32 +198,278 @@ function App() {
 
       {/* How it Works Section */}
       <section className="ff-how">
-        <h2>How it Works</h2>
-        <div className="ff-how-steps">
-          <div className="ff-step">
-            <div className="ff-step-icon">
-              <svg width="48" height="48"><rect width="48" height="48" rx="10" fill="#FF4500" /></svg>
-            </div>
-            <div className="ff-step-title">Stelbed huck lead generation groeffons</div>
+        <div 
+          className="ff-how-header"
+          onClick={() => setIsHowItWorksExpanded(!isHowItWorksExpanded)}
+        >
+          <h2>How it Works</h2>
+          <div className="ff-how-arrow">
+            {isHowItWorksExpanded ? '−' : '+'}
           </div>
-          <div className="ff-step">
-            <div className="ff-step-icon">
-              <svg width="48" height="48"><rect width="48" height="48" rx="10" fill="#6EC6CA" /></svg>
-            </div>
-            <div className="ff-step-title">Increased shneatioq enggeration anert</div>
+        </div>
+        {isHowItWorksExpanded && (
+          <div className="ff-how-steps">
+            {steps.map((step, index) => (
+              <div key={index} className="ff-step">
+                <div className="ff-step-header">
+                  <div className="ff-step-icon">
+                    <svg width="48" height="48">
+                      <rect width="48" height="48" rx="10" fill={step.color} />
+                    </svg>
+                  </div>
+                  <div className="ff-step-title">{step.title}</div>
+                </div>
+                <div className="ff-step-content">
+                  <p>{step.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="ff-step">
-            <div className="ff-step-icon">
-              <svg width="48" height="48"><rect width="48" height="48" rx="10" fill="#F7C873" /></svg>
+        )}
+      </section>
+
+      {/* Reddit DM Form Section */}
+      <section id="reddit-dm-section" className="ff-form-section">
+        <div className="ff-form-container">
+          <h2>Reddit DM Automation</h2>
+          <p className="ff-form-subtitle">Configure your automated DM campaign</p>
+          
+          <form onSubmit={handleSubmit} className="ff-form">
+            <div className="ff-form-group">
+              <label htmlFor="productName">Product Name *</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">📦</span>
+                <input
+                  id="productName"
+                  name="productName"
+                  type="text"
+                  placeholder="Enter your product name"
+                  value={fields.productName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={60}
+                  className={touched.productName && !fields.productName ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.productName.length}/60</span>
+              </div>
             </div>
-            <div className="ff-step-title">Cod catse twartion engagemofon a verd growthfl</div>
-          </div>
-          <div className="ff-step">
-            <div className="ff-step-icon">
-              <svg width="48" height="48"><rect width="48" height="48" rx="10" fill="#B3C2D1" /></svg>
+            
+            <div className="ff-form-group">
+              <label htmlFor="productUrl">Product URL *</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">🔗</span>
+                <input
+                  id="productUrl"
+                  name="productUrl"
+                  type="url"
+                  placeholder="https://your-product-url.com"
+                  value={fields.productUrl}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={100}
+                  className={touched.productUrl && !fields.productUrl ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.productUrl.length}/100</span>
+              </div>
             </div>
-            <div className="ff-step-title">Community growth</div>
-          </div>
+            
+            {/* <div className="ff-form-group">
+              <label htmlFor="problemSolved">Problem Being Solved * (min. 100 characters)</label>
+              <div className="ff-input-wrap textarea-wrap">
+                <span className="ff-input-icon">❓</span>
+                <textarea
+                  id="problemSolved"
+                  name="problemSolved"
+                  placeholder="Describe the problem your product solves"
+                  value={fields.problemSolved}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={500}
+                  className={touched.problemSolved && fields.problemSolved.length < 100 ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.problemSolved.length}/500</span>
+              </div>
+              {touched.problemSolved && fields.problemSolved.length < 100 && (
+                <div className="ff-error">Minimum 100 characters required</div>
+              )}
+            </div> */}
+            
+            <div className="ff-form-group">
+              <label htmlFor="elevatorPitch">Elevator Pitch * (min. 100 characters)</label>
+              <div className="ff-input-wrap textarea-wrap">
+                <span className="ff-input-icon">💡</span>
+                <textarea
+                  id="elevatorPitch"
+                  name="elevatorPitch"
+                  placeholder="Your product elevator pitch"
+                  value={fields.elevatorPitch}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={500}
+                  className={touched.elevatorPitch && fields.elevatorPitch.length < 100 ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.elevatorPitch.length}/500</span>
+              </div>
+              {touched.elevatorPitch && fields.elevatorPitch.length < 100 && (
+                <div className="ff-error">Minimum 100 characters required</div>
+              )}
+            </div>
+            
+            <div className="ff-form-group">
+              <label htmlFor="keywords">Keywords (comma separated, max 100 characters)</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">🔑</span>
+                <input
+                  id="keywords"
+                  name="keywords"
+                  type="text"
+                  placeholder="e.g. SaaS, AI, automation"
+                  value={fields.keywords}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={100}
+                />
+                <span className="ff-char-count">{fields.keywords.length}/100</span>
+              </div>
+            </div>
+            
+            <div className="ff-form-group">
+              <label htmlFor="ask">Select what you want from users</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">🎯</span>
+                <select
+                  id="ask"
+                  name="ask"
+                  value={fields.ask}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  className={touched.ask && !fields.ask ? 'invalid' : ''}
+                  required
+                > 
+                 <option value="Try the product and provide feedback">Try the product and provide feedback</option>                 
+                  <option value="Sign up for trial">Sign up for trial</option>                 
+                  <option value="Subscribe">Subscribe</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="ff-form-group">
+              <label htmlFor="redditHandle">Your Reddit Handle *</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">👤</span>
+                <input
+                  id="redditHandle"
+                  name="redditHandle"
+                  type="text"
+                  placeholder="Your Reddit username"
+                  value={fields.redditHandle}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={30}
+                  className={touched.redditHandle && !fields.redditHandle ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.redditHandle.length}/30</span>
+              </div>
+            </div>
+            
+            <div className="ff-form-group">
+              <label htmlFor="email">Email Address *</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">✉️</span>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Your email address"
+                  value={fields.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={100}
+                  className={touched.email && !fields.email ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.email.length}/100</span>
+              </div>
+            </div>
+            
+            <div className="ff-form-group">
+              <label htmlFor="subreddit">Top Subreddit Name *</label>
+              <div className="ff-input-wrap">
+                <span className="ff-input-icon">🔍</span>
+                <input
+                  id="subreddit"
+                  name="subreddit"
+                  type="text"
+                  placeholder="e.g. startups (without r/)"
+                  value={fields.subreddit}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  maxLength={30}
+                  className={touched.subreddit && !fields.subreddit ? 'invalid' : ''}
+                  required
+                />
+                <span className="ff-char-count">{fields.subreddit.length}/30</span>
+              </div>
+              {touched.subreddit && !fields.subreddit && (
+                <div className="ff-error">Please enter a subreddit name</div>
+              )}
+            </div>
+            
+            <button type="submit" disabled={!allFilled || submitted || loading} className={`ff-submit-btn ${allFilled ? 'active' : ''}`}>
+              {loading ? 'Processing...' : submitted ? 'Submitted!' : 'Submit'}
+            </button>
+          </form>
+          
+          {error && (
+            <div className="ff-error-message">
+              {error}
+            </div>
+          )}
+          
+          {results.length > 0 && (
+            <div className="ff-results">
+              {results.map((result, index) => (
+                <div key={index} className="ff-result-section">
+                  {result.subreddits && (
+                    <div className="ff-subreddits">
+                      <h2>Recommended Subreddits</h2>
+                      <div className="ff-subreddits-list">
+                        {result.subreddits.map((subreddit, idx) => (
+                          <div key={idx} className="ff-subreddit-card">
+                            <h3>r/{subreddit.name}</h3>
+                            <div className="ff-subreddit-stats">
+                              <span>{subreddit.subscribers.toLocaleString()} subscribers</span>
+                            </div>
+                            <p>{subreddit.description}</p>
+                            <a href={subreddit.url} target="_blank" rel="noopener noreferrer" className="ff-subreddit-link">
+                              Visit Subreddit
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {result.output && (
+                    <div className="ff-dm-template">
+                      <h2>Generated DM Template</h2>
+                      <div className="ff-dm-content">
+                        <h3>{result.output.subject}</h3>
+                        <div className="ff-dm-body markdown-content">
+                          <ReactMarkdown>{result.output.body}</ReactMarkdown>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
