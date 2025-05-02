@@ -12,6 +12,18 @@ interface Subreddit {
   matches: number;
 }
 
+interface TopAuthor {
+  author: string;
+  avg_score: number;
+  avg_upvote_ratio: number;
+  rank_score: number;
+  reason: string;
+  total_posts: number;
+  profile_url: string;
+  top_post_title: string;
+  url: string;
+}
+
 interface Output {
   subject: string;
   body: string;
@@ -19,7 +31,8 @@ interface Output {
 }
 
 interface ApiResponse {
-  subreddits?: Subreddit[];
+  top_ranked_authors?: TopAuthor[];
+  top_subreddits?: Subreddit[];
   output?: Output;
 }
 
@@ -27,19 +40,8 @@ function App() {
   const [isHowItWorksExpanded, setIsHowItWorksExpanded] = useState(false);
   const [expandedCards, setExpandedCards] = useState<number[]>([]);
   const [fields, setFields] = useState(() => {
-    // Initialize fields from localStorage if available and in browser environment
-    if (typeof window !== 'undefined') {
-      const savedFields = localStorage.getItem('founderflow_form_data');
-      if (savedFields) {
-        try {
-          return JSON.parse(savedFields);
-        } catch (error) {
-          console.error('Error loading saved form data:', error);
-        }
-      }
-    }
-    // Default values if no saved data
-    return {
+    // Initialize with empty values first
+    const initialFields = {
       productName: '',
       productUrl: '',
       problemSolved: '',
@@ -50,6 +52,22 @@ function App() {
       email: '',
       subreddit: '',
     };
+
+    // Only try to load from localStorage on the client side
+    if (typeof window !== 'undefined') {
+      const savedFields = localStorage.getItem('founderflow_form_data');
+      if (savedFields) {
+        try {
+          const parsedFields = JSON.parse(savedFields);
+          // Merge saved fields with initial fields to ensure all required fields exist
+          return { ...initialFields, ...parsedFields };
+        } catch (error) {
+          console.error('Error loading saved form data:', error);
+        }
+      }
+    }
+
+    return initialFields;
   });
   const [touched, setTouched] = useState({
     productName: false,
@@ -183,9 +201,17 @@ function App() {
     const body = `Here are your Reddit DM campaign results:\n\n` +
       `Product: ${fields.productName}\n` +
       `Subreddit: ${fields.subreddit}\n\n` +
-      `Recommended Subreddits:\n` +
+      `Top Ranked Authors:\n` +
       results.map(result => 
-        result.subreddits?.map(sub => 
+        result.top_ranked_authors?.map(author => 
+          `- ${author.author} (Rank Score: ${(author.rank_score * 100).toFixed(1)}%)\n` +
+          `  Top Post: ${author.top_post_title}\n` +
+          `  Profile: ${author.profile_url}\n`
+        ).join('\n')
+      ).join('\n') +
+      `\nRecommended Subreddits:\n` +
+      results.map(result => 
+        result.top_subreddits?.map(sub => 
           `- r/${sub.name} (${sub.subscribers.toLocaleString()} subscribers)\n` +
           `  ${sub.description}\n`
         ).join('\n')
@@ -526,28 +552,72 @@ function App() {
             <div className="ff-results">
               {results.map((result, index) => (
                 <div key={index} className="ff-result-section">
-                  {result.subreddits && (
+                  {result.top_ranked_authors && (
+                    <div className="ff-authors">
+                      <h2>Top Ranked Authors</h2>
+                      <div className="ff-authors-list">
+                        {result.top_ranked_authors.map((author, idx) => (
+                          <div key={idx} className="ff-author-card">
+                            <div className="ff-author-header">
+                              <h3>
+                                <a href={author.profile_url} target="_blank" rel="noopener noreferrer">
+                                  {author.author}
+                                </a>
+                              </h3>
+                              <span className="ff-author-reason">{author.reason}</span>
+                            </div>
+                            <div className="ff-author-content">
+                              <div className="ff-author-post">
+                                <h4>Top Post</h4>
+                                <p>{author.top_post_title}</p>
+                                <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-author-link">
+                                  View Post
+                                </a>
+                              </div>
+                              <div className="ff-author-stats">
+                                <div className="ff-stat">
+                                  <span className="ff-stat-label">Avg Score</span>
+                                  <span className="ff-stat-value">{author.avg_score.toLocaleString()}</span>
+                                </div>
+                                <div className="ff-stat">
+                                  <span className="ff-stat-label">Upvote Ratio</span>
+                                  <span className="ff-stat-value">{(author.avg_upvote_ratio * 100).toFixed(0)}%</span>
+                                </div>
+                                <div className="ff-stat">
+                                  <span className="ff-stat-label">Rank Score</span>
+                                  <span className="ff-stat-value">{(author.rank_score * 100).toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {result.top_subreddits && (
                     <div className="ff-subreddits">
                       <h2>Recommended Subreddits</h2>
                       <div className="ff-subreddits-list">
-                        {result.subreddits.map((subreddit, idx) => (
+                        {result.top_subreddits.map((subreddit, idx) => (
                           <div key={idx} className="ff-subreddit-card">
-                            <h3>r/{subreddit.name}</h3>
-                            <div className="ff-subreddit-stats">
-                              <span>{subreddit.subscribers.toLocaleString()} subscribers</span>
+                            <div className="ff-subreddit-header">
+                              <h3>r/{subreddit.name}</h3>
+                              <div className="ff-subreddit-stats">
+                                <span className="ff-subscriber-count">
+                                  {subreddit.subscribers.toLocaleString()} subscribers
+                                </span>
+                                <span className="ff-match-count">
+                                  {subreddit.matches} matches
+                                </span>
+                              </div>
                             </div>
-                            <div className={`ff-subreddit-description ${expandedCards.includes(idx) ? 'expanded' : ''}`}>
-                              <p>{subreddit.description}</p>
+                            <div className="ff-subreddit-content">
+                              <p className="ff-subreddit-description">{subreddit.description}</p>
+                              <a href={subreddit.url} target="_blank" rel="noopener noreferrer" className="ff-subreddit-link">
+                                Visit Subreddit
+                              </a>
                             </div>
-                            <button 
-                              className="ff-show-more-btn"
-                              onClick={() => toggleCardExpansion(idx)}
-                            >
-                              {expandedCards.includes(idx) ? 'Show less' : 'Show more'}
-                            </button>
-                            <a href={subreddit.url} target="_blank" rel="noopener noreferrer" className="ff-subreddit-link">
-                              Visit Subreddit
-                            </a>
                           </div>
                         ))}
                       </div>
