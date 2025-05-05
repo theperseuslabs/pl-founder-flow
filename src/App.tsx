@@ -86,6 +86,12 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSendingDM, setIsSendingDM] = useState(false);
+  const [showRedditModal, setShowRedditModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [redditHandleInput, setRedditHandleInput] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [redditHandleError, setRedditHandleError] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   // Save form data to localStorage whenever fields change
   useEffect(() => {
@@ -252,6 +258,14 @@ function App() {
     } finally {
       setIsSendingDM(false);
     }
+  };
+
+  const handleSendRedditDM = () => {
+    // Implementation of handleSendRedditDM
+  };
+
+  const handleSendEmail = () => {
+    // Implementation of handleSendEmail
   };
 
   return (
@@ -549,130 +563,145 @@ function App() {
           )}
           
           {results.length > 0 && (
-            <div className="ff-results">
-              {results.map((result, index) => (
-                <div key={index} className="ff-result-section">
-                  {result.top_ranked_authors && (
-                    <div className="ff-authors">
-                      <h2>Top Ranked Authors</h2>
-                      <div className="ff-authors-list">
-                        {result.top_ranked_authors.map((author, idx) => (
-                          <div key={idx} className="ff-author-card">
-                            <div className="ff-author-header">
-                              <h3>
-                                <a href={author.profile_url} target="_blank" rel="noopener noreferrer">
-                                  {author.author}
-                                </a>
-                              </h3>
-                              <span className="ff-author-reason">{author.reason}</span>
-                            </div>
-                            <div className="ff-author-content">
-                              <div className="ff-author-post">
-                                <h4>Top Post</h4>
-                                <p>{author.top_post_title}</p>
-                                <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-author-link">
-                                  View Post
-                                </a>
-                              </div>
-                              <div className="ff-author-stats">
-                                <div className="ff-stat">
-                                  <span className="ff-stat-label">Avg Score</span>
-                                  <span className="ff-stat-value">{author.avg_score.toLocaleString()}</span>
+            <div>              
+              <div className="ff-output-section">
+                <h2 className="ff-section-header">Output</h2>
+                <div className="ff-results">                
+                  {results.map((result, index) => (
+                    <div key={index} className="ff-result-section">
+                      {result.top_subreddits && (
+                        <div className="ff-subreddits">
+                          <h2>Top Subreddits</h2>
+                          <p className="ff-section-description">Top 5 subreddits selected based on your pitch, AI-powered keyword search, and subscriber volume.</p>
+                          <div className="ff-subreddits-list">
+                            {result.top_subreddits.map((subreddit, idx) => (
+                              <div key={idx} className="ff-subreddit-card">
+                                <div className="ff-subreddit-header">
+                                  <h3>
+                                    <a href={subreddit.url} target="_blank" rel="noopener noreferrer">
+                                      r/{subreddit.name}
+                                    </a>
+                                  </h3>
+                                  <div className="ff-subreddit-stats">
+                                    <span className="ff-subscriber-count">
+                                      {subreddit.subscribers.toLocaleString()} subscribers
+                                    </span>
+                                  </div>
                                 </div>
-                                <div className="ff-stat">
-                                  <span className="ff-stat-label">Upvote Ratio</span>
-                                  <span className="ff-stat-value">{(author.avg_upvote_ratio * 100).toFixed(0)}%</span>
-                                </div>
-                                <div className="ff-stat">
-                                  <span className="ff-stat-label">Rank Score</span>
-                                  <span className="ff-stat-value">{(author.rank_score * 100).toFixed(1)}%</span>
+                                <div className="ff-subreddit-content">
+                                  <p className="ff-subreddit-description">{subreddit.description}</p>
                                 </div>
                               </div>
-                            </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {result.top_subreddits && (
-                    <div className="ff-subreddits">
-                      <h2>Recommended Subreddits</h2>
-                      <div className="ff-subreddits-list">
-                        {result.top_subreddits.map((subreddit, idx) => (
-                          <div key={idx} className="ff-subreddit-card">
-                            <div className="ff-subreddit-header">
-                              <h3>r/{subreddit.name}</h3>
-                              <div className="ff-subreddit-stats">
-                                <span className="ff-subscriber-count">
-                                  {subreddit.subscribers.toLocaleString()} subscribers
-                                </span>
-                                <span className="ff-match-count">
-                                  {subreddit.matches} matches
-                                </span>
-                              </div>
-                            </div>
-                            <div className="ff-subreddit-content">
-                              <p className="ff-subreddit-description">{subreddit.description}</p>
-                              <a href={subreddit.url} target="_blank" rel="noopener noreferrer" className="ff-subreddit-link">
-                                Visit Subreddit
-                              </a>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {result.output && (
-                    <div className="ff-dm-template">
-                      <h2>Generated DM Template</h2>
-                      <div className="ff-dm-content">
-                        <h3>{result.output.subject}</h3>
-                        <div className="ff-dm-body markdown-content">
-                          <ReactMarkdown>{result.output.body}</ReactMarkdown>
                         </div>
-                      </div>
+                      )}
+
+                      {result.top_ranked_authors && (
+                        <div className="ff-authors">
+                          <h2>High-fit Reddit users</h2>
+                          <p className="ff-section-description">Top 5 Reddit users ranked by engagement and relevance to your pitch, keywords, and subreddits—with reasons for each pick.</p>
+                          <div className="ff-authors-list">
+                            {result.top_ranked_authors.map((author, idx) => (
+                              <div key={idx} className="ff-author-card">
+                                <div className="ff-author-header">
+                                  <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
+                                    {author.author}
+                                  </a>
+                                  <span className="ff-author-reason">{author.reason}</span>
+                                </div>
+                                <div className="ff-author-content">
+                                  <div className="ff-author-post">
+                                    <h4>Top Post</h4>
+                                    <p className="ff-author-post-title">{author.top_post_title}</p>
+                                    <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-author-link ff-view-post-btn">
+                                      View Post
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {result.output && (
+                        <div className="ff-dm-template">
+                          <h2>AI-generated Reddit DM template</h2>
+                          <p className="ff-section-description">Personalized reddit DM copy that can be auto-sent to your top fit reddit users on an ongoing basis (as new users are found by the algorithm). For now, you can provide your reddit handle below and we can send a sample DM. It will go only to you.</p>
+                          <div className="ff-dm-content">
+                            <h3>{result.output.subject}</h3>
+                            <div className="ff-dm-body markdown-content">
+                              <ReactMarkdown>{result.output.body}</ReactMarkdown>
+                            </div>
+                          </div>
+                          <div className="ff-results-actions">
+                            <button 
+                              className={`ff-action-btn reddit-btn`}
+                              onClick={() => setShowRedditModal(true)}
+                            >
+                              <span className="ff-action-icon">💬</span>
+                              Send it me as Reddit DM
+                            </button>
+                            <button 
+                              className={`ff-action-btn email-btn`}
+                              onClick={() => setShowEmailModal(true)}
+                            >
+                              <span className="ff-action-icon">✉️</span>
+                              Email it to me
+                            </button>
+                          </div>
+                          {/* Reddit Handle Modal */}
+                          {showRedditModal && (
+                            <div className="ff-modal-overlay">
+                              <div className="ff-modal">
+                                <h3>Enter your Reddit handle</h3>
+                                <input
+                                  type="text"
+                                  value={redditHandleInput}
+                                  onChange={e => setRedditHandleInput(e.target.value)}
+                                  placeholder="Reddit handle"
+                                  className={redditHandleError ? 'invalid' : ''}
+                                />
+                                {redditHandleError && <div className="ff-modal-error">{redditHandleError}</div>}
+                                <div className="ff-modal-actions">
+                                  <button onClick={handleSendRedditDM} className="ff-action-btn reddit-btn">Send</button>
+                                  <button onClick={() => setShowRedditModal(false)} className="ff-action-btn email-btn">Cancel</button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {/* Email Modal */}
+                          {showEmailModal && (
+                            <div className="ff-modal-overlay">
+                              <div className="ff-modal">
+                                <h3>Enter your email address</h3>
+                                <input
+                                  type="email"
+                                  value={emailInput}
+                                  onChange={e => setEmailInput(e.target.value)}
+                                  placeholder="Email address"
+                                  className={emailError ? 'invalid' : ''}
+                                />
+                                {emailError && <div className="ff-modal-error">{emailError}</div>}
+                                <div className="ff-modal-actions">
+                                  <button onClick={handleSendEmail} className="ff-action-btn email-btn">Send</button>
+                                  <button onClick={() => setShowEmailModal(false)} className="ff-action-btn reddit-btn">Cancel</button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
+                  
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
+                    <button className="ff-action-btn reddit-btn" onClick={handleSubmit} style={{ minWidth: 140 }}>
+                      Regenerate
+                    </button>
+                  </div>
                 </div>
-              ))}
-              
-              <div className="ff-results-actions">
-                <button 
-                  className={`ff-action-btn email-btn ${isSendingDM ? 'loading' : ''}`}
-                  onClick={handleEmailResults}
-                  disabled={isSendingDM}
-                >
-                  {isSendingDM ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" />
-                      <span style={{ marginLeft: '8px' }}>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="ff-action-icon">✉️</span>
-                      Send to Email
-                    </>
-                  )}
-                </button>
-                <button 
-                  className={`ff-action-btn reddit-btn ${isSendingDM ? 'loading' : ''}`}
-                  onClick={handleRedditDM}
-                  disabled={isSendingDM}
-                >
-                  {isSendingDM ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" />
-                      <span style={{ marginLeft: '8px' }}>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="ff-action-icon">💬</span>
-                      Send as Reddit DM
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           )}
