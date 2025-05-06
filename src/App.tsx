@@ -173,17 +173,17 @@ function App() {
 
   const steps = [
     {
-      title: "Stelbed huck lead generation groeffons",
+      title: "Stealth lead generation growth",
       color: "#FF4500",
       description: "Automate your lead generation process with our advanced tools and workflows."
     },
     {
-      title: "Increased shneatioq enggeration anert",
+      title: "Increased engagement and retention",
       color: "#6EC6CA",
       description: "Boost engagement rates through targeted and personalized interactions."
     },
     {
-      title: "Cod catse twartion engagemofon a verd growthfl",
+      title: "Code case conversion engagement and growth flow",
       color: "#F7C873",
       description: "Convert more leads into customers with optimized conversion strategies."
     },
@@ -665,12 +665,7 @@ function App() {
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="ff-footer">
-        <span>©opyright Fodetrlind Prodjuts & text Yor</span>
-      </footer>
+      </section>      
     </div>
   );
 }
