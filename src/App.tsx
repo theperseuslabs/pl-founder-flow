@@ -408,7 +408,7 @@ function App() {
                     className={touched.productName && !fields.productName ? 'invalid' : ''}
                     required
                   />
-                  <span className="ff-char-count">{fields.productName.length}/100</span>
+                  <span className="ff-char-count" suppressHydrationWarning>{fields.productName.length}/100</span>
                 </div>
               </div>
 
@@ -428,7 +428,7 @@ function App() {
                     className={touched.productUrl && !fields.productUrl ? 'invalid' : ''}
                     required
                   />
-                  <span className="ff-char-count">{fields.productUrl.length}/100</span>
+                  <span className="ff-char-count" suppressHydrationWarning>{fields.productUrl.length}/100</span>
                 </div>
               </div>
 
@@ -447,7 +447,7 @@ function App() {
                     className={touched.elevatorPitch && fields.elevatorPitch.length < 100 ? 'invalid' : ''}
                     required
                   />
-                  <span className="ff-char-count">{fields.elevatorPitch.length}/500</span>
+                  <span className="ff-char-count" suppressHydrationWarning>{fields.elevatorPitch.length}/500</span>
                 </div>
                 {touched.elevatorPitch && fields.elevatorPitch.length < 100 && (
                   <div className="ff-error">Minimum 100 characters required</div>
@@ -493,7 +493,7 @@ function App() {
                     onBlur={handleBlur}
                     maxLength={100}
                   />
-                  <span className="ff-char-count">{fields.keywords.length}/100</span>
+                  <span className="ff-char-count" suppressHydrationWarning>{fields.keywords.length}/100</span>
                 </div>
                 <div className="ff-helper-text">Enter comma-separated keywords your users might search - optional, but improves targeting.</div>
               </div>
@@ -512,7 +512,7 @@ function App() {
                     onBlur={handleBlur}
                     maxLength={30}
                   />
-                  <span className="ff-char-count">{fields.subreddit.length}/30</span>
+                  <span className="ff-char-count" suppressHydrationWarning>{fields.subreddit.length}/30</span>
                 </div>
                 <div className="ff-helper-text">Enter ONE subreddit (no r/) where your ideal customers hang out - optional, but helps with targeting.</div>
               </div>
