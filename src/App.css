@@ -168,96 +168,131 @@
   background: #fff;
   border-radius: 2.5rem;
   box-shadow: 0 4px 32px 0 rgba(0,0,0,0.04);
-  padding: 2.5rem 2rem 2.5rem 2rem;
-  transition: all 0.3s ease;
+  padding: 3rem 2rem;
 }
 
-.ff-how-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-.ff-how-header:hover {
-  opacity: 0.8;
+.ff-how-content {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .ff-how h2 {
-  font-size: 1.7rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin: 0;
-  text-align: left;
-}
-
-.ff-how-arrow {
-  font-size: 1.8rem;
-  color: #666;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease;
+  color: #1e293b;
+  margin-bottom: 2.5rem;
+  text-align: center;
 }
 
 .ff-how-steps {
   display: flex;
   flex-direction: column;
+  gap: 2rem;
+}
+
+.ff-how-step {
+  display: flex;
   gap: 1.5rem;
-  margin-top: 2rem;
-  animation: fadeIn 0.3s ease;
-}
-
-.ff-step {
-  background: #fff;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: #f8fafc;
   border-radius: 1rem;
-  border: 1px solid #eee;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
-.ff-step:hover {
-  border-color: #ddd;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.ff-how-step:hover {
+  transform: translateY(-2px);
 }
 
-.ff-step-header {
+.ff-step-number {
   display: flex;
   align-items: center;
-  padding: 1.5rem;
-  gap: 1rem;
-}
-
-.ff-step-icon {
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: #FF4500;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
-.ff-step-title {
-  flex-grow: 1;
-  font-size: 1.08rem;
-  font-weight: 600;
-  color: #222;
-  text-align: left;
+.ff-step-content {
+  flex: 1;
 }
 
-.ff-step-content {
-  padding: 0 1.5rem 1.5rem 1.5rem;
-  color: #666;
+.ff-step-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.ff-step-content p {
+  color: #64748b;
   font-size: 1rem;
   line-height: 1.5;
-  text-align: left;
+  margin: 0;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
+.ff-step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ff-step-list li {
+  color: #64748b;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding-left: 1.5rem;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.ff-step-list li:last-child {
+  margin-bottom: 0;
+}
+
+.ff-step-list li::before {
+  content: "•";
+  color: #FF4500;
+  position: absolute;
+  left: 0;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 600px) {
+  .ff-how {
+    margin: 1.5rem 0.5rem 0 0.5rem;
+    padding: 1.5rem 1rem;
+    border-radius: 1.2rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .ff-how h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ff-how-step {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .ff-step-number {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1rem;
+  }
+
+  .ff-step-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .ff-step-content p,
+  .ff-step-list li {
+    font-size: 0.95rem;
   }
 }
 
@@ -312,14 +347,6 @@
   .ff-hero-content {
     flex-direction: column;
     gap: 1.2rem;
-  }
-  .ff-how {
-    margin: 1.5rem 0.5rem 0 0.5rem;
-    padding: 1.2rem 0.5rem 1.2rem 0.5rem;
-    border-radius: 1.2rem;
-  }
-  .ff-how h2 {
-    font-size: 1.1rem;
   }
   .ff-footer {
     font-size: 0.95rem;
@@ -1237,5 +1264,74 @@
   .ff-modal {
     padding: 1.2rem 0.7rem 1rem 0.7rem;
     min-width: 0;
+  }
+}
+
+.ff-hero-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.ff-hero-cta-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.ff-cta-button {
+  background-color: #FF4500;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(255, 69, 0, 0.2);
+}
+
+.ff-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(255, 69, 0, 0.3);
+  background-color: #FF5722;
+}
+
+.ff-how-it-works-link {
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 0.5rem 0;
+}
+
+.ff-how-it-works-link:hover {
+  color: #FF4500;
+}
+
+.ff-cta-support {
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .ff-hero-cta-buttons {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .ff-cta-button {
+    width: 100%;
+  }
+
+  .ff-how-it-works-link {
+    text-align: center;
   }
 }

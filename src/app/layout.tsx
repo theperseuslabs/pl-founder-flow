@@ -5,8 +5,8 @@ import '../index.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FounderFlow',
-  description: 'Your startup management platform',
+  title: 'Easy Marketing Automation',
+  description: 'Find and Message Your First Customers on Reddit – Instantly',
 }
 
 export default function RootLayout({
