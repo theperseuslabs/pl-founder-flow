@@ -279,61 +279,35 @@ function App() {
           </svg>
           <span className="ff-brand">Easy Marketing Automation - Reddit</span>
         </div>
-        <nav className="ff-nav">
-          <a href="#" className="ff-nav-link">Home</a>
-          <a href="#" className="ff-nav-link">About & Agreements</a>
-        </nav>
       </header>
 
       {/* Hero Section */}
       <section className="ff-hero">
         <div className="ff-hero-content">
           <div className="ff-hero-text">
-            <span className="ff-hero-badge">{/* Reddit icon placeholder */}
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="12" fill="#FF4500" /></svg>
-            </span>
             <h1>Automated Reddit ICP lead search & DMs for Founders</h1>
             <p className="ff-hero-sub">Find and Reach Your Ideal Customers on Reddit—Effortlessly. Just tell us what your product does. We'll find high-fit users, relevant subreddits, and craft personalized DMs—powered by AI, Reddit tactics, and automation.</p>
             <div className="ff-hero-cta">
-              <div className="ff-hero-cta-buttons">
-                <button className="ff-cta-button" onClick={() => {
-                  const element = document.getElementById('reddit-dm-section');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}>Try it in seconds</button>
-                <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
-                  e.preventDefault();
-                  const element = document.getElementById('how-it-works');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}>How it Works</a>
-              </div>
+              <button className="ff-cta-button" onClick={() => {
+                const element = document.getElementById('reddit-dm-section');
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}>Try it in seconds</button>
               <p className="ff-cta-support">No setup. No signups. No payments.</p>
+              <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById('how-it-works');
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}>How it Works</a>
             </div>
           </div>
-          <div className="ff-hero-image">
-            {/* Placeholder for monitor illustration */}
-            <div className="ff-monitor">
-              <svg width="260" height="160" viewBox="0 0 260 160" fill="none">
-                <rect x="0" y="0" width="260" height="140" rx="8" fill="#222" />
-                <rect x="80" y="145" width="100" height="10" rx="3" fill="#E5E5E5" />
-                {/* Reddit faces/icons */}
-                <circle cx="40" cy="40" r="16" fill="#FF4500" />
-                <circle cx="220" cy="40" r="12" fill="#FF4500" />
-                <circle cx="200" cy="100" r="10" fill="#FF4500" />
-                <rect x="60" y="30" width="140" height="60" rx="6" fill="#fff" />
-                <rect x="70" y="40" width="40" height="10" rx="2" fill="#E5E5E5" />
-                <rect x="70" y="60" width="80" height="8" rx="2" fill="#E5E5E5" />
-              </svg>
-            </div>
-          </div>
+
         </div>
       </section>
 
       {/* Reddit DM Form Section */}
-      <section id="reddit-dm-section" className="ff-form-section">
+      <section id="reddit-dm-section" className="ff-form-section">      
         <div className="ff-form-container">
-          <h2>Reddit DM Automation</h2>
-          <p className="ff-form-subtitle">Configure your automated DM campaign</p>
-          
+          <h2 className="ff-hero-subtitle">Try it out here in seconds</h2>                    
           <form onSubmit={handleSubmit} className="ff-form">
             <div className="ff-form-group">
               <label htmlFor="productName">Product Name *</label>
