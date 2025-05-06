@@ -2,6 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ClipLoader } from 'react-spinners';
+import { track, identify, getUserId } from '@/utils/mixpanel';
 
 interface Subreddit {
   name: string;
@@ -93,6 +94,17 @@ function App() {
   const [redditHandleError, setRedditHandleError] = useState('');
   const [emailError, setEmailError] = useState('');
 
+  // Initialize user identification on component mount
+  useEffect(() => {
+    // Identify user and track page view
+    identify();
+    track('Page View', {
+      page: 'Home',
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
+  }, []);
+
   // Save form data to localStorage whenever fields change
   useEffect(() => {
     localStorage.setItem('ema_form_data', JSON.stringify(fields));
@@ -101,9 +113,16 @@ function App() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
+    // Track form field changes with user ID
+    track('Form Field Change', {
+      field: name,
+      value_length: value.length,
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
+    
     // Special handling for subreddit input
     if (name === 'subreddit') {
-      // Remove any spaces, commas, and 'r/' prefix if present
       const cleanValue = value.replace(/[\s,]+/g, '').replace(/^r\//, '');
       setFields((prev: typeof fields) => ({ ...prev, [name]: cleanValue }));
     } else {
@@ -138,6 +157,17 @@ function App() {
     setError(null);
     setResults([]);
     
+    // Track form submission with user ID
+    track('Form Submission', {
+      product_name: fields.productName,
+      has_url: !!fields.productUrl,
+      pitch_length: fields.elevatorPitch.length,
+      has_keywords: !!fields.keywords,
+      has_subreddit: !!fields.subreddit,
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
+    
     try {
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/11fe63b2-cbf2-4010-91c0-6e82441bcc5a', {
         method: 'POST',
@@ -162,8 +192,24 @@ function App() {
       
       const data = await response.json();
       setResults(data);
+
+      // Track successful results with user ID
+      track('Results Generated', {
+        has_subreddits: !!data[0]?.top_subreddits,
+        has_authors: !!data[0]?.top_ranked_authors,
+        has_dm_template: !!data[0]?.output,
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      
+      // Track error with user ID
+      track('Form Error', {
+        error_message: err instanceof Error ? err.message : 'Unknown error',
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
       setIsSubmitting(false);
@@ -238,7 +284,14 @@ function App() {
       setRedditHandleError('Reddit handle is required');
       return;
     }
-    console.log(results)
+
+    // Track DM attempt with user ID
+    track('Reddit DM Attempt', {
+      reddit_handle: redditHandleInput.trim(),
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
+
     setIsSendingDM(true);
     try {
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/sendRedditDM', {
@@ -257,15 +310,43 @@ function App() {
         throw new Error('Failed to send Reddit DM');
       }
       
+      // Track successful DM with user ID
+      track('Reddit DM Sent', {
+        reddit_handle: redditHandleInput.trim(),
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
+
       // Close the modal on success
       setShowRedditModal(false);
       setRedditHandleInput('');
       setRedditHandleError('');
     } catch (error) {
       setError('Failed to send Reddit DM. Please try again.');
+      
+      // Track DM error with user ID
+      track('Reddit DM Error', {
+        reddit_handle: redditHandleInput.trim(),
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
     } finally {
       setIsSendingDM(false);
     }
+  };
+
+  // Track scroll to sections
+  const handleScrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    element?.scrollIntoView({ behavior: 'smooth' });
+    
+    // Track section scroll with user ID
+    track('Section Scroll', {
+      section: sectionId,
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
   };
 
   return (
@@ -288,19 +369,18 @@ function App() {
             <h1>Automated Reddit ICP lead search & DMs for Founders</h1>
             <p className="ff-hero-sub">Find and Reach Your Ideal Customers on Reddit—Effortlessly. Just tell us what your product does. We'll find high-fit users, relevant subreddits, and craft personalized DMs—powered by AI, Reddit tactics, and automation.</p>
             <div className="ff-hero-cta">
-              <button className="ff-cta-button" onClick={() => {
-                const element = document.getElementById('reddit-dm-section');
-                element?.scrollIntoView({ behavior: 'smooth' });
-              }}>Try it in seconds</button>
+              <button className="ff-cta-button" onClick={() => handleScrollToSection('reddit-dm-section')}>
+                Try it in seconds
+              </button>
               <p className="ff-cta-support">No setup. No signups. No payments.</p>
               <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
                 e.preventDefault();
-                const element = document.getElementById('how-it-works');
-                element?.scrollIntoView({ behavior: 'smooth' });
-              }}>How it Works</a>
+                handleScrollToSection('how-it-works');
+              }}>
+                How it Works
+              </a>
             </div>
           </div>
-
         </div>
       </section>
 
