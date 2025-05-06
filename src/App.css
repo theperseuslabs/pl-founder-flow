@@ -384,11 +384,52 @@
 }
 
 .ff-form-section {
-  margin: 3.5rem 2.5rem 0 2.5rem;
   background: #fff;
-  border-radius: 2.5rem;
-  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.04);
-  padding: 2.5rem 2rem 2.5rem 2rem;
+  border-radius: 1.2rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ff-form-section-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ff-helper-text {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.ff-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.ff-form-group:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .ff-form-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ff-form-section-title {
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.8rem;
+  }
+
+  .ff-helper-text {
+    font-size: 0.85rem;
+  }
 }
 
 .ff-form-container {
@@ -1267,13 +1308,26 @@
 .ff-modal-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.ff-modal-actions .ff-action-btn {
+  flex: 1;
+  min-width: 100px;
 }
 
 @media (max-width: 600px) {
   .ff-modal {
     padding: 1.2rem 0.7rem 1rem 0.7rem;
     min-width: 0;
+  }
+  
+  .ff-modal-actions {
+    flex-direction: column;
+  }
+  
+  .ff-modal-actions .ff-action-btn {
+    width: 100%;
   }
 }
 
@@ -1333,4 +1387,18 @@
     width: 100%;
     max-width: none;
   }
+}
+
+.ff-action-btn.loading {
+  opacity: 0.8;
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ff-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }

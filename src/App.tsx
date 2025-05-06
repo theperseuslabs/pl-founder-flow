@@ -122,8 +122,8 @@ function App() {
       // fields.problemSolved.trim().length >= 100 &&
       fields.elevatorPitch.trim().length >= 100 &&
       // fields.ask.trim() !== '' &&
-      fields.redditHandle.trim() !== '' &&
-      fields.email.trim() !== '' &&
+      // fields.redditHandle.trim() !== '' &&
+      // fields.email.trim() !== '' &&
       fields.subreddit.trim() !== ''
     );
   };
@@ -234,6 +234,11 @@ function App() {
   };
 
   const handleRedditDM = async () => {
+    if (!redditHandleInput.trim()) {
+      setRedditHandleError('Reddit handle is required');
+      return;
+    }
+    console.log(results)
     setIsSendingDM(true);
     try {
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/sendRedditDM', {
@@ -242,30 +247,25 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          custRedditHandle: fields.redditHandle,
-          body: results[1]?.output?.body || '',
-          subject: results[1]?.output?.subject || ''
+          custRedditHandle: redditHandleInput.trim(),
+          body: results[2]?.output?.body.replace("[Recipient's Reddit Handle]", redditHandleInput.trim()) || '',
+          subject: results[2]?.output?.subject || ''
         }),
       });
-      console.log(fields)
-      console.log(results)
 
       if (!response.ok) {
         throw new Error('Failed to send Reddit DM');
-      }      
+      }
+      
+      // Close the modal on success
+      setShowRedditModal(false);
+      setRedditHandleInput('');
+      setRedditHandleError('');
     } catch (error) {
       setError('Failed to send Reddit DM. Please try again.');
     } finally {
       setIsSendingDM(false);
     }
-  };
-
-  const handleSendRedditDM = () => {
-    // Implementation of handleSendRedditDM
-  };
-
-  const handleSendEmail = () => {
-    // Implementation of handleSendEmail
   };
 
   return (
@@ -309,191 +309,135 @@ function App() {
         <div className="ff-form-container">
           <h2 className="ff-hero-subtitle">Try it out here in seconds</h2>                    
           <form onSubmit={handleSubmit} className="ff-form">
-            <div className="ff-form-group">
-              <label htmlFor="productName">Product Name *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">📦</span>
-                <input
-                  id="productName"
-                  name="productName"
-                  type="text"
-                  placeholder="Enter your product name"
-                  value={fields.productName}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={60}
-                  className={touched.productName && !fields.productName ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.productName.length}/60</span>
+            <div className="ff-form-section">
+              <h3 className="ff-form-section-title">Your Product/Business Basic Info</h3>
+              
+              <div className="ff-form-group">
+                <label htmlFor="productName">Business/Product Name *</label>
+                <div className="ff-input-wrap">
+                  <span className="ff-input-icon">📦</span>
+                  <input
+                    id="productName"
+                    name="productName"
+                    type="text"
+                    placeholder="Enter your business/product name"
+                    value={fields.productName}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    maxLength={100}
+                    className={touched.productName && !fields.productName ? 'invalid' : ''}
+                    required
+                  />
+                  <span className="ff-char-count">{fields.productName.length}/100</span>
+                </div>
+              </div>
+
+              <div className="ff-form-group">
+                <label htmlFor="productUrl">URL *</label>
+                <div className="ff-input-wrap">
+                  <span className="ff-input-icon">🔗</span>
+                  <input
+                    id="productUrl"
+                    name="productUrl"
+                    type="url"
+                    placeholder="https://your-product-url.com"
+                    value={fields.productUrl}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    maxLength={100}
+                    className={touched.productUrl && !fields.productUrl ? 'invalid' : ''}
+                    required
+                  />
+                  <span className="ff-char-count">{fields.productUrl.length}/100</span>
+                </div>
+              </div>
+
+              <div className="ff-form-group">
+                <label htmlFor="elevatorPitch">Elevator Pitch *</label>
+                <div className="ff-input-wrap textarea-wrap">
+                  <span className="ff-input-icon">💡</span>
+                  <textarea
+                    id="elevatorPitch"
+                    name="elevatorPitch"
+                    placeholder="Please provide the best description of what your product/business does/offers"
+                    value={fields.elevatorPitch}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    maxLength={500}
+                    className={touched.elevatorPitch && fields.elevatorPitch.length < 100 ? 'invalid' : ''}
+                    required
+                  />
+                  <span className="ff-char-count">{fields.elevatorPitch.length}/500</span>
+                </div>
+                {touched.elevatorPitch && fields.elevatorPitch.length < 100 && (
+                  <div className="ff-error">Minimum 100 characters required</div>
+                )}
+              </div>
+
+              <div className="ff-form-group">
+                <label htmlFor="ask">Select your ask from the user *</label>
+                <div className="ff-input-wrap">
+                  <span className="ff-input-icon">🎯</span>
+                  <select
+                    id="ask"
+                    name="ask"
+                    value={fields.ask}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    className={touched.ask && !fields.ask ? 'invalid' : ''}
+                    required
+                  >
+                    <option value="">Select an option</option>
+                    <option value="Try the product and provide feedback">Try the product and provide feedback</option>
+                    <option value="Sign up for trial">Sign up for trial</option>
+                    <option value="Subscribe">Subscribe</option>
+                  </select>
+                </div>
               </div>
             </div>
-            
-            <div className="ff-form-group">
-              <label htmlFor="productUrl">Product URL *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">🔗</span>
-                <input
-                  id="productUrl"
-                  name="productUrl"
-                  type="url"
-                  placeholder="https://your-product-url.com"
-                  value={fields.productUrl}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={100}
-                  className={touched.productUrl && !fields.productUrl ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.productUrl.length}/100</span>
+
+            <div className="ff-form-section">
+              <h3 className="ff-form-section-title">Additional Optional Targeting Info</h3>
+
+              <div className="ff-form-group">
+                <label htmlFor="keywords">Keywords</label>
+                <div className="ff-input-wrap">
+                  <span className="ff-input-icon">🔑</span>
+                  <input
+                    id="keywords"
+                    name="keywords"
+                    type="text"
+                    placeholder="Enter comma-separated keywords your users might search"
+                    value={fields.keywords}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    maxLength={100}
+                  />
+                  <span className="ff-char-count">{fields.keywords.length}/100</span>
+                </div>
+                <div className="ff-helper-text">Enter comma-separated keywords your users might search - optional, but improves targeting.</div>
+              </div>
+
+              <div className="ff-form-group">
+                <label htmlFor="subreddit">Top Subreddit</label>
+                <div className="ff-input-wrap">
+                  <span className="ff-input-icon">🔍</span>
+                  <input
+                    id="subreddit"
+                    name="subreddit"
+                    type="text"
+                    placeholder="e.g. startups (without r/)"
+                    value={fields.subreddit}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    maxLength={30}
+                  />
+                  <span className="ff-char-count">{fields.subreddit.length}/30</span>
+                </div>
+                <div className="ff-helper-text">Enter ONE subreddit (no r/) where your ideal customers hang out - optional, but helps with targeting.</div>
               </div>
             </div>
-            
-            {/* <div className="ff-form-group">
-              <label htmlFor="problemSolved">Problem Being Solved * (min. 100 characters)</label>
-              <div className="ff-input-wrap textarea-wrap">
-                <span className="ff-input-icon">❓</span>
-                <textarea
-                  id="problemSolved"
-                  name="problemSolved"
-                  placeholder="Describe the problem your product solves"
-                  value={fields.problemSolved}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={500}
-                  className={touched.problemSolved && fields.problemSolved.length < 100 ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.problemSolved.length}/500</span>
-              </div>
-              {touched.problemSolved && fields.problemSolved.length < 100 && (
-                <div className="ff-error">Minimum 100 characters required</div>
-              )}
-            </div> */}
-            
-            <div className="ff-form-group">
-              <label htmlFor="elevatorPitch">Elevator Pitch * (min. 100 characters)</label>
-              <div className="ff-input-wrap textarea-wrap">
-                <span className="ff-input-icon">💡</span>
-                <textarea
-                  id="elevatorPitch"
-                  name="elevatorPitch"
-                  placeholder="Your product elevator pitch"
-                  value={fields.elevatorPitch}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={500}
-                  className={touched.elevatorPitch && fields.elevatorPitch.length < 100 ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.elevatorPitch.length}/500</span>
-              </div>
-              {touched.elevatorPitch && fields.elevatorPitch.length < 100 && (
-                <div className="ff-error">Minimum 100 characters required</div>
-              )}
-            </div>
-            
-            <div className="ff-form-group">
-              <label htmlFor="keywords">Keywords (comma separated, max 100 characters)</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">🔑</span>
-                <input
-                  id="keywords"
-                  name="keywords"
-                  type="text"
-                  placeholder="e.g. SaaS, AI, automation"
-                  value={fields.keywords}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={100}
-                />
-                <span className="ff-char-count">{fields.keywords.length}/100</span>
-              </div>
-            </div>
-            
-            <div className="ff-form-group">
-              <label htmlFor="ask">Select what you want from users</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">🎯</span>
-                <select
-                  id="ask"
-                  name="ask"
-                  value={fields.ask}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={touched.ask && !fields.ask ? 'invalid' : ''}
-                  required
-                > 
-                 <option value="Try the product and provide feedback">Try the product and provide feedback</option>                 
-                  <option value="Sign up for trial">Sign up for trial</option>                 
-                  <option value="Subscribe">Subscribe</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="ff-form-group">
-              <label htmlFor="redditHandle">Your Reddit Handle *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">👤</span>
-                <input
-                  id="redditHandle"
-                  name="redditHandle"
-                  type="text"
-                  placeholder="Your Reddit username"
-                  value={fields.redditHandle}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={30}
-                  className={touched.redditHandle && !fields.redditHandle ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.redditHandle.length}/30</span>
-              </div>
-            </div>
-            
-            <div className="ff-form-group">
-              <label htmlFor="email">Email Address *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">✉️</span>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Your email address"
-                  value={fields.email}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={100}
-                  className={touched.email && !fields.email ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.email.length}/100</span>
-              </div>
-            </div>
-            
-            <div className="ff-form-group">
-              <label htmlFor="subreddit">Top Subreddit Name *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">🔍</span>
-                <input
-                  id="subreddit"
-                  name="subreddit"
-                  type="text"
-                  placeholder="e.g. startups (without r/)"
-                  value={fields.subreddit}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={30}
-                  className={touched.subreddit && !fields.subreddit ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count">{fields.subreddit.length}/30</span>
-              </div>
-              {touched.subreddit && !fields.subreddit && (
-                <div className="ff-error">Please enter a subreddit name</div>
-              )}
-            </div>
-            
+
             <button 
               type="submit" 
               disabled={!allFilled || submitted || loading} 
@@ -559,8 +503,10 @@ function App() {
                                 <div className="ff-author-header">
                                   <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
                                     {author.author}
-                                  </a>
-                                  <span className="ff-author-reason">{author.reason}</span>
+                                  </a>                                  
+                                </div>
+                                <div className="ff-author-content">
+                                <span className="ff-author-reason">{author.reason}</span>
                                 </div>
                                 <div className="ff-author-content">
                                   <div className="ff-author-post">
@@ -611,14 +557,39 @@ function App() {
                                 <input
                                   type="text"
                                   value={redditHandleInput}
-                                  onChange={e => setRedditHandleInput(e.target.value)}
+                                  onChange={e => {
+                                    setRedditHandleInput(e.target.value);
+                                    if (e.target.value.trim() === '') {
+                                      setRedditHandleError('Reddit handle is required');
+                                    } else {
+                                      setRedditHandleError('');
+                                    }
+                                  }}
                                   placeholder="Reddit handle"
                                   className={redditHandleError ? 'invalid' : ''}
+                                  required
                                 />
                                 {redditHandleError && <div className="ff-modal-error">{redditHandleError}</div>}
                                 <div className="ff-modal-actions">
-                                  <button onClick={handleSendRedditDM} className="ff-action-btn reddit-btn">Send</button>
-                                  <button onClick={() => setShowRedditModal(false)} className="ff-action-btn email-btn">Cancel</button>
+                                  <button 
+                                    onClick={handleRedditDM} 
+                                    className={`ff-action-btn reddit-btn ${isSendingDM ? 'loading' : ''}`}
+                                    disabled={isSendingDM || !redditHandleInput.trim()}
+                                  >
+                                    {isSendingDM ? (
+                                      <>
+                                        <ClipLoader size={20} color="#ffffff" />
+                                        <span style={{ marginLeft: '8px' }}>Sending...</span>
+                                      </>
+                                    ) : 'Send'}
+                                  </button>
+                                  <button 
+                                    onClick={() => setShowRedditModal(false)} 
+                                    className="ff-action-btn email-btn"
+                                    disabled={isSendingDM}
+                                  >
+                                    Cancel
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -637,7 +608,7 @@ function App() {
                                 />
                                 {emailError && <div className="ff-modal-error">{emailError}</div>}
                                 <div className="ff-modal-actions">
-                                  <button onClick={handleSendEmail} className="ff-action-btn email-btn">Send</button>
+                                  <button onClick={()=>{}} className="ff-action-btn email-btn">Send</button>
                                   <button onClick={() => setShowEmailModal(false)} className="ff-action-btn reddit-btn">Cancel</button>
                                 </div>
                               </div>
