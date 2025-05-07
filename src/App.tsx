@@ -94,6 +94,43 @@ function App() {
   const [emailInput, setEmailInput] = useState('');
   const [redditHandleError, setRedditHandleError] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [isFormValid, setIsFormValid] = useState(false);
+  const [currentStep, setCurrentStep] = useState<number>(-1);
+
+  const progressSteps = [
+    `Extracting additional keywords for ${fields.productName}`,
+    `Finding top subreddits for ${fields.productName}`,
+    `Finding top redditors for ${fields.productName}`,
+    `Composing reddit engagement DM for ${fields.productName}`,
+    'Packaging results...'
+  ];
+
+  const getRandomWaitTime = () => {
+    // Random time between 1500ms and 3000ms
+    return Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
+  };
+
+  const ProgressLoader = () => {
+    if (currentStep === -1) return null;
+    
+    return (
+      <div className="ff-progress-loader">
+        <div className="ff-progress-steps">
+          {progressSteps.map((step, index) => (
+            <div 
+              key={index} 
+              className={`ff-progress-step ${index === currentStep ? 'active' : index < currentStep ? 'completed' : ''}`}
+            >
+              <div className="ff-progress-dot">
+                {index < currentStep ? '✓' : index === currentStep ? '⟳' : ''}
+              </div>
+              <div className="ff-progress-text">{step}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   // Initialize user identification on component mount
   useEffect(() => {
@@ -105,6 +142,19 @@ function App() {
       timestamp: new Date().toISOString()
     });
   }, []);
+
+  // Validate form fields whenever relevant fields change
+  useEffect(() => {
+    const validateFields = () => {
+      return (
+        fields.productName.trim() !== '' &&
+        fields.productUrl.trim() !== '' &&
+        fields.ask.trim() !== ''
+      );
+    };
+    
+    setIsFormValid(validateFields());
+  }, [fields.productName, fields.productUrl, fields.ask]);
 
   // Save form data to localStorage whenever fields change
   useEffect(() => {
@@ -135,28 +185,16 @@ function App() {
     setTouched({ ...touched, [e.target.name]: true });
   };
   
-  const validateFields = () => {
-    return (
-      fields.productName.trim() !== '' &&
-      fields.productUrl.trim() !== '' &&
-      // fields.problemSolved.trim().length >= 100 &&
-      // fields.elevatorPitch.trim().length >= 100 &&
-      fields.ask.trim() !== '' 
-      // fields.redditHandle.trim() !== '' &&
-      // fields.email.trim() !== '' &&
-      // fields.subreddit.trim() !== ''
-    );
-  };
-  
-  const allFilled = validateFields();
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
+    
     setSubmitted(true);
     setLoading(true);
     setIsSubmitting(true);
     setError(null);
     setResults([]);
+    setCurrentStep(0);
     
     // Track form submission with user ID
     track('Form Submission', {
@@ -170,6 +208,12 @@ function App() {
     });
     
     try {
+      // Simulate progress steps with random wait times
+      for (let i = 0; i < progressSteps.length; i++) {
+        setCurrentStep(i);
+        await new Promise(resolve => setTimeout(resolve, getRandomWaitTime()));
+      }
+
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/11fe63b2-cbf2-4010-91c0-6e82441bcc5a', {
         method: 'POST',
         headers: {
@@ -214,6 +258,7 @@ function App() {
     } finally {
       setLoading(false);
       setIsSubmitting(false);
+      setCurrentStep(-1);
       setTimeout(() => setSubmitted(false), 2500);
     }
   };
@@ -355,12 +400,9 @@ function App() {
       <Clarity />
       {/* Header */}
       <header className="ff-header">
-        <div className="ff-logo">{/* Placeholder Logo */}
-          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="36" height="36" rx="8" fill="#222" />
-            <text x="50%" y="55%" textAnchor="middle" fill="#fff" fontSize="16" fontFamily="Arial" dy=".3em">FF</text>
-          </svg>
-          <span className="ff-brand">Easy Marketing Automation - Reddit</span>
+        <div className="ff-logo">
+          <img src="/logo.png" alt="EMA Logo" width="331" height="104.4" />
+          {/* <span className="ff-brand">Reddit</span> */}
         </div>
       </header>
 
@@ -522,15 +564,15 @@ function App() {
 
             <button 
               type="submit" 
-              disabled={!allFilled || submitted || loading} 
-              className={`ff-submit-btn ${allFilled ? 'active' : ''} ${isSubmitting ? 'loading' : ''}`}
+              disabled={!isFormValid || submitted || loading} 
+              className={`ff-submit-btn ${isFormValid ? 'active' : ''} ${isSubmitting ? 'loading' : ''}`}
             >
               {isSubmitting ? (
                 <>
                   <ClipLoader size={20} color="#ffffff" />
                   <span style={{ marginLeft: '8px' }}>Processing...</span>
                 </>
-              ) : submitted ? 'Submitted!' : 'Submit'}
+              ) : submitted ? 'Submitted!' : 'Submit'}              
             </button>
           </form>
           
@@ -539,6 +581,8 @@ function App() {
               {error}
             </div>
           )}
+          
+          {loading && <ProgressLoader />}
           
           {results.length > 0 && (
             <div>              
