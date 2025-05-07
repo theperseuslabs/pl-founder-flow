@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ClipLoader } from 'react-spinners';
 import { track, identify, getUserId } from '@/utils/mixpanel';
+import Clarity from './components/Clarity';
 
 interface Subreddit {
   name: string;
@@ -56,7 +57,7 @@ function App() {
 
     // Only try to load from localStorage on the client side
     if (typeof window !== 'undefined') {
-      const savedFields = localStorage.getItem('founderflow_form_data');
+      const savedFields = localStorage.getItem('ema_form_data');
       if (savedFields) {
         try {
           const parsedFields = JSON.parse(savedFields);
@@ -351,6 +352,7 @@ function App() {
 
   return (
     <div className="ff-root">
+      <Clarity />
       {/* Header */}
       <header className="ff-header">
         <div className="ff-logo">{/* Placeholder Logo */}
