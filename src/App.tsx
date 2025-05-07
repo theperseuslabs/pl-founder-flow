@@ -139,11 +139,11 @@ function App() {
       fields.productName.trim() !== '' &&
       fields.productUrl.trim() !== '' &&
       // fields.problemSolved.trim().length >= 100 &&
-      fields.elevatorPitch.trim().length >= 100 &&
-      // fields.ask.trim() !== '' &&
+      // fields.elevatorPitch.trim().length >= 100 &&
+      fields.ask.trim() !== '' 
       // fields.redditHandle.trim() !== '' &&
       // fields.email.trim() !== '' &&
-      fields.subreddit.trim() !== ''
+      // fields.subreddit.trim() !== ''
     );
   };
   
