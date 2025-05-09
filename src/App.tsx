@@ -101,6 +101,7 @@ function App() {
   const [waitlistEmailError, setWaitlistEmailError] = useState('');
   const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const progressSteps = [
     `Extracting additional keywords for ${fields.productName}`,
@@ -440,6 +441,52 @@ function App() {
     }
   };
 
+  const handleEmailSubmit = async () => {
+    if (!emailInput.trim()) {
+      setEmailError('Email is required');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/sendEmail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailInput.trim(),
+          response: results,          
+          productName: fields.productName,
+          productUrl: fields.productUrl,
+          elevatorPitch: fields.elevatorPitch,
+          ask: fields.ask,
+          keywords: fields.keywords,
+          subreddit: fields.subreddit
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send email');
+      }
+
+      // Track email sent
+      track('Email Sent', {
+        email: emailInput.trim(),
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
+      
+      setShowEmailModal(false);
+      setEmailInput('');
+      setEmailError('');
+    } catch (error) {
+      setEmailError('Failed to send email. Please try again.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   return (
     <div className="ff-root">
       <Clarity />
@@ -712,7 +759,55 @@ function App() {
                               <span className="ff-action-icon">💬</span>
                               Send it me as Reddit DM
                             </button>
+                            <button 
+                              className={`ff-action-btn email-btn`}
+                              onClick={() => setShowEmailModal(true)}
+                            >
+                              <span className="ff-action-icon">✉️</span>
+                              Email it to me
+                            </button>
                           </div>
+                          {/* Email Modal */}
+                          {showEmailModal && (
+                            <div className="ff-modal-overlay">
+                              <div className="ff-modal">
+                                <h3>Enter your email</h3>
+                                <p className="ff-modal-description">We'll send the Reddit DM template to your email address.</p>
+                                <input
+                                  type="email"
+                                  value={emailInput}
+                                  onChange={e => {
+                                    setEmailInput(e.target.value);
+                                    setEmailError('');
+                                  }}
+                                  placeholder="Enter your email"
+                                  className={emailError ? 'invalid' : ''}
+                                />
+                                {emailError && <div className="ff-modal-error">{emailError}</div>}
+                                <div className="ff-modal-actions">
+                                  <button 
+                                    onClick={handleEmailSubmit}
+                                    className={`ff-action-btn email-btn ${isSendingEmail ? 'loading' : ''}`}
+                                    disabled={isSendingEmail || !emailInput.trim()}
+                                  >
+                                    {isSendingEmail ? (
+                                      <>
+                                        <ClipLoader size={20} color="#ffffff" />
+                                        <span style={{ marginLeft: '8px' }}>Sending...</span>
+                                      </>
+                                    ) : 'Send Email'}
+                                  </button>
+                                  <button 
+                                    onClick={() => setShowEmailModal(false)} 
+                                    className="ff-action-btn"
+                                    disabled={isSendingEmail}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                           {/* Reddit Handle Modal */}
                           {showRedditModal && (
                             <div className="ff-modal-overlay">
