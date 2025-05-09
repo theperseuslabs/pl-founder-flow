@@ -6,7 +6,7 @@ import { track, identify, getUserId } from '@/utils/mixpanel';
 import Clarity from './components/Clarity';
 
 interface Subreddit {
-  name: string;
+  display_name_prefixed: string;
   subscribers: number;
   accounts_active: number;
   description: string;
@@ -96,6 +96,11 @@ function App() {
   const [emailError, setEmailError] = useState('');
   const [isFormValid, setIsFormValid] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(-1);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistEmailError, setWaitlistEmailError] = useState('');
+  const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
 
   const progressSteps = [
     `Extracting additional keywords for ${fields.productName}`,
@@ -310,7 +315,7 @@ function App() {
       `\nRecommended Subreddits:\n` +
       results.map(result => 
         result.top_subreddits?.map(sub => 
-          `- r/${sub.name} (${sub.subscribers.toLocaleString()} subscribers)\n` +
+          `- ${sub.display_name_prefixed} (${sub.subscribers.toLocaleString()} subscribers)\n` +
           `  ${sub.description}\n`
         ).join('\n')
       ).join('\n') +
@@ -393,6 +398,46 @@ function App() {
       user_id: getUserId(),
       timestamp: new Date().toISOString()
     });
+  };
+
+  const handleWaitlistSubmit = async () => {
+    if (!waitlistEmail.trim()) {
+      setWaitlistEmailError('Email is required');
+      return;
+    }
+
+    setIsSubmittingWaitlist(true);
+    try {
+      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/joinWaitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email_id: waitlistEmail.trim()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to join waitlist');
+      }
+
+      // Track waitlist signup
+      track('Waitlist Signup', {
+        email: waitlistEmail.trim(),
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
+      
+      setWaitlistSuccess(true);
+      setWaitlistEmail('');
+      setWaitlistEmailError('');
+      setShowWaitlistModal(false);
+    } catch (error) {
+      setWaitlistEmailError('Failed to join waitlist. Please try again.');
+    } finally {
+      setIsSubmittingWaitlist(false);
+    }
   };
 
   return (
@@ -601,7 +646,7 @@ function App() {
                                 <div className="ff-subreddit-header">
                                   <h3>
                                     <a href={subreddit.url} target="_blank" rel="noopener noreferrer">
-                                      r/{subreddit.name}
+                                      {subreddit.display_name_prefixed}
                                     </a>
                                   </h3>
                                   <div className="ff-subreddit-stats">
@@ -652,7 +697,7 @@ function App() {
                       {result.output && (
                         <div className="ff-dm-template">
                           <h2>AI-generated Reddit DM template</h2>
-                          <p className="ff-section-description">Personalized reddit DM copy that can be auto-sent to your top fit reddit users on an ongoing basis (as new users are found by the algorithm). For now, you can provide your reddit handle below and we can send a sample DM. It will go only to you.</p>
+                          <p className="ff-section-description">We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.</p>
                           <div className="ff-dm-content">
                             <h3>{result.output.subject}</h3>
                             <div className="ff-dm-body markdown-content">
@@ -666,13 +711,6 @@ function App() {
                             >
                               <span className="ff-action-icon">💬</span>
                               Send it me as Reddit DM
-                            </button>
-                            <button 
-                              className={`ff-action-btn email-btn`}
-                              onClick={() => setShowEmailModal(true)}
-                            >
-                              <span className="ff-action-icon">✉️</span>
-                              Email it to me
                             </button>
                           </div>
                           {/* Reddit Handle Modal */}
@@ -720,22 +758,43 @@ function App() {
                               </div>
                             </div>
                           )}
-                          {/* Email Modal */}
-                          {showEmailModal && (
+                          {/* Waitlist Modal */}
+                          {showWaitlistModal && (
                             <div className="ff-modal-overlay">
                               <div className="ff-modal">
-                                <h3>Enter your email address</h3>
+                                <h3>Join the Waitlist</h3>
+                                <p className="ff-modal-description">Be the first to know when we launch automated Reddit DM campaigns.</p>
                                 <input
                                   type="email"
-                                  value={emailInput}
-                                  onChange={e => setEmailInput(e.target.value)}
-                                  placeholder="Email address"
-                                  className={emailError ? 'invalid' : ''}
+                                  value={waitlistEmail}
+                                  onChange={e => {
+                                    setWaitlistEmail(e.target.value);
+                                    setWaitlistEmailError('');
+                                  }}
+                                  placeholder="Enter your email"
+                                  className={waitlistEmailError ? 'invalid' : ''}
                                 />
-                                {emailError && <div className="ff-modal-error">{emailError}</div>}
+                                {waitlistEmailError && <div className="ff-modal-error">{waitlistEmailError}</div>}
                                 <div className="ff-modal-actions">
-                                  <button onClick={()=>{}} className="ff-action-btn email-btn">Send</button>
-                                  <button onClick={() => setShowEmailModal(false)} className="ff-action-btn reddit-btn">Cancel</button>
+                                  <button 
+                                    onClick={handleWaitlistSubmit}
+                                    className={`ff-action-btn waitlist-btn ${isSubmittingWaitlist ? 'loading' : ''}`}
+                                    disabled={isSubmittingWaitlist || !waitlistEmail.trim()}
+                                  >
+                                    {isSubmittingWaitlist ? (
+                                      <>
+                                        <ClipLoader size={20} color="#ffffff" />
+                                        <span style={{ marginLeft: '8px' }}>Joining...</span>
+                                      </>
+                                    ) : 'Join Waitlist'}
+                                  </button>
+                                  <button 
+                                    onClick={() => setShowWaitlistModal(false)} 
+                                    className="ff-action-btn email-btn"
+                                    disabled={isSubmittingWaitlist}
+                                  >
+                                    Cancel
+                                  </button>
                                 </div>
                               </div>
                             </div>
@@ -744,9 +803,31 @@ function App() {
                       )}
                     </div>
                   ))}
-                  
+                                  
+
+                  {/* Waitlist Section */}
+                  <div className="ff-waitlist-section">
+                    <div className="ff-waitlist-content">
+                      <h3>Join the Waitlist</h3>
+                      <p>Be the first to know when we launch automated Reddit DM campaigns for your product.</p>
+                      {waitlistSuccess ? (
+                        <div className="ff-waitlist-success">
+                          <span className="ff-success-icon">✓</span>
+                          <p>Thanks for joining! We'll notify you when we launch.</p>
+                        </div>
+                      ) : (
+                        <button 
+                              className={`ff-action-btn waitlist-btn`}
+                              onClick={() => setShowWaitlistModal(true)}
+                            >
+                              <span className="ff-action-icon">🚀</span>
+                              Join Waitlist
+                            </button> 
+                      )}
+                    </div>
+                  </div>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-                    <button className="ff-action-btn reddit-btn" onClick={handleSubmit} style={{ minWidth: 140 }}>
+                    <button className="ff-action-btn ff-view-post-btn" onClick={handleSubmit} style={{ minWidth: 140 }}>
                       Regenerate
                     </button>
                   </div>
