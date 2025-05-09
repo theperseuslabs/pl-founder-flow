@@ -686,7 +686,7 @@ function App() {
                       {result.top_subreddits && (
                         <div className="ff-subreddits">
                           <h2>Top Subreddits</h2>
-                          <p className="ff-section-description">Top 5 subreddits selected based on your pitch, AI-powered keyword search, and subscriber volume.</p>
+                          <p className="ff-section-description">Top subreddits selected based on your pitch, AI-powered keyword search, and subscriber volume.</p>
                           <div className="ff-subreddits-list">
                             {result.top_subreddits.map((subreddit, idx) => (
                               <div key={idx} className="ff-subreddit-card">
@@ -714,7 +714,7 @@ function App() {
                       {result.top_ranked_authors && (
                         <div className="ff-authors">
                           <h2>High-fit Reddit users</h2>
-                          <p className="ff-section-description">Top 5 Reddit users ranked by engagement and relevance to your pitch, keywords, and subreddits—with reasons for each pick.</p>
+                          <p className="ff-section-description">Top Reddit users ranked by engagement and relevance to your pitch, keywords, and subreddits—with reasons for each pick.</p>
                           <div className="ff-authors-list">
                             {result.top_ranked_authors.map((author, idx) => (
                               <div key={idx} className="ff-author-card">
