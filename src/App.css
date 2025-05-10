@@ -56,7 +56,7 @@
 
 .ff-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 2rem 2.5rem 1.5rem 2.5rem;
   background: #fff;
@@ -69,6 +69,7 @@
 .ff-logo {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
 }
 .ff-brand {
@@ -335,7 +336,7 @@
   }
   .ff-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     padding: 1.2rem 1rem 1rem 1rem;
     border-radius: 0 0 1.2rem 1.2rem;
   }

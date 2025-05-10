@@ -493,7 +493,7 @@ function App() {
       {/* Header */}
       <header className="ff-header">
         <div className="ff-logo">
-          <img src="/logo.png" alt="EMA Logo" width="331" height="104.4" />
+          <img src="/logo.png" alt="EMA Logo" width="200" height="162" />
           {/* <span className="ff-brand">Reddit</span> */}
         </div>
       </header>
