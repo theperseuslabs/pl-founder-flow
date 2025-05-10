@@ -171,12 +171,12 @@ function App() {
     const { name, value } = e.target;
     
     // Track form field changes with user ID
-    track('Form Field Change', {
-      field: name,
-      value_length: value.length,
-      user_id: getUserId(),
-      timestamp: new Date().toISOString()
-    });
+    // track('Form Field Change', {
+    //   field: name,
+    //   value_length: value.length,
+    //   user_id: getUserId(),
+    //   timestamp: new Date().toISOString()
+    // });
     
     // Special handling for subreddit input
     if (name === 'subreddit') {
