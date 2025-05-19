@@ -580,13 +580,13 @@ function App() {
                     onChange={handleChange}
                     onBlur={handleBlur}
                     maxLength={500}
-                    className={touched.elevatorPitch && fields.elevatorPitch.length < 100 ? 'invalid' : ''}
+                    className={touched.elevatorPitch && fields.elevatorPitch.length < 50 ? 'invalid' : ''}
                     required
                   />
                   <span className="ff-char-count" suppressHydrationWarning>{fields.elevatorPitch.length}/500</span>
                 </div>
-                {touched.elevatorPitch && fields.elevatorPitch.length < 100 && (
-                  <div className="ff-error">Minimum 100 characters required</div>
+                {touched.elevatorPitch && fields.elevatorPitch.length < 50 && (
+                  <div className="ff-error">Minimum 50 characters required</div>
                 )}
               </div>
 
