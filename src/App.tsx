@@ -555,7 +555,7 @@ function App() {
                   <input
                     id="productUrl"
                     name="productUrl"
-                    type="url"
+                    // type="url"
                     placeholder="https://your-product-url.com"
                     value={fields.productUrl}
                     onChange={handleChange}
