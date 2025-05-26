@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown';
 import { ClipLoader } from 'react-spinners';
 import { track, identify, getUserId } from '@/utils/mixpanel';
 import Clarity from './components/Clarity';
+import { useAuth } from '@/lib/firebase/AuthContext';
+import { BlurredContent } from '@/components/BlurredContent';
 
 interface Subreddit {
   display_name_prefixed: string;
@@ -110,7 +112,9 @@ function App() {
     `Composing reddit engagement DM for ${fields.productName}`,
     'Packaging results...'
   ];
-
+  
+  const auth = useAuth();
+  
   const getRandomWaitTime = () => {
     // Random time between 1500ms and 3000ms
     return Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
@@ -190,7 +194,153 @@ function App() {
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setTouched({ ...touched, [e.target.name]: true });
   };
-  
+
+  const dummyData=[
+    {
+        "top_ranked_authors": [
+            {
+                "author": "Cat_Booger",
+                "avg_score": 3729,
+                "avg_upvote_ratio": 0.95,
+                "rank_score": 0.6,
+                "reason": "High average score",
+                "total_posts": 1,
+                "profile_url": "https://www.reddit.com/user/Cat_Booger",
+                "top_post_title": "Started on April 8th with a 2K account, only trading options, hit 6 figures for the first time in my life. What did you do when you hit your first 6 figures?",
+                "url": "https://www.reddit.com/r/Daytrading/comments/1kkb90d/started_on_april_8th_with_a_2k_account_only/"
+            },
+            {
+                "author": "satireplusplus",
+                "avg_score": 11,
+                "avg_upvote_ratio": 0.9,
+                "rank_score": 0.502,
+                "reason": "High activity",
+                "total_posts": 5,
+                "profile_url": "https://www.reddit.com/user/satireplusplus",
+                "top_post_title": "Daily r/thetagang Discussion Thread - What are your moves for today?",
+                "url": "https://www.reddit.com/r/thetagang/comments/1klge3w/daily_rthetagang_discussion_thread_what_are_your/"
+            },
+            {
+                "author": "AutoModerator",
+                "avg_score": 16,
+                "avg_upvote_ratio": 0.85,
+                "rank_score": 0.502,
+                "reason": "High activity",
+                "total_posts": 5,
+                "profile_url": "https://www.reddit.com/user/AutoModerator",
+                "top_post_title": "r/Stocks Daily Discussion &amp; Technicals Tuesday - May 13, 2025",
+                "url": "https://www.reddit.com/r/stocks/comments/1klhn9p/rstocks_daily_discussion_technicals_tuesday_may/"
+            },
+            {
+                "author": "GrowYourConscious",
+                "avg_score": 1392,
+                "avg_upvote_ratio": 0.98,
+                "rank_score": 0.287,
+                "reason": "High average score",
+                "total_posts": 1,
+                "profile_url": "https://www.reddit.com/user/GrowYourConscious",
+                "top_post_title": "I've Been Options Trading for 10 Years, and These Are My 5 Biggest Tips",
+                "url": "https://www.reddit.com/r/options/comments/1ko421w/ive_been_options_trading_for_10_years_and_these/"
+            },
+            {
+                "author": "Prudent_Comfort_9089",
+                "avg_score": 1260,
+                "avg_upvote_ratio": 0.95,
+                "rank_score": 0.269,
+                "reason": "High average score",
+                "total_posts": 1,
+                "profile_url": "https://www.reddit.com/user/Prudent_Comfort_9089",
+                "top_post_title": "Using AI to find options trade opportunities. Full guide + prompts below",
+                "url": "https://www.reddit.com/r/options/comments/1kbzkii/using_ai_to_find_options_trade_opportunities_full/"
+            },
+            {
+                "author": "iquitoptions",
+                "avg_score": 286,
+                "avg_upvote_ratio": 0.91,
+                "rank_score": 0.138,
+                "reason": "High activity",
+                "total_posts": 1,
+                "profile_url": "https://www.reddit.com/user/iquitoptions",
+                "top_post_title": "Losses that haunt me — options trading wiped out my savings. Who else?",
+                "url": "https://www.reddit.com/r/options/comments/1kqv3lo/losses_that_haunt_me_options_trading_wiped_out_my/"
+            }
+        ]
+    },
+    {
+        "top_subreddits": [
+            {
+                "display_name_prefixed": "r/stocks",
+                "title": "Stocks - Investing and trading for all",
+                "description": "The most serious place on Reddit for Stock related discussions!  Don't hesitate to tell us about a ticker we should know about, market news, or financial education.\n\nCheck out our WIKI that has beginner &amp; advanced topics on both investing &amp; trading.",
+                "subscribers": 8853774,
+                "frequency": 5,
+                "score": 1,
+                "url": "https://www.reddit.com/r/stocks"
+            },
+            {
+                "display_name_prefixed": "r/Daytrading",
+                "title": "Daytrading: Information for your everyday trader",
+                "description": "Daytrading futures, forex, stocks, etc.",
+                "subscribers": 4872060,
+                "frequency": 5,
+                "score": 0.7751402961042375,
+                "url": "https://www.reddit.com/r/Daytrading"
+            },
+            {
+                "display_name_prefixed": "r/investing",
+                "title": "Lose money with friends!",
+                "description": "",
+                "subscribers": 3031924,
+                "frequency": 5,
+                "score": 0.6712221251638002,
+                "url": "https://www.reddit.com/r/investing"
+            },
+            {
+                "display_name_prefixed": "r/options",
+                "title": "/r/Options ",
+                "description": "Let's Talk About:     \nExchange Traded Financial Options   -- \nOptions Fundamentals     --  \nThe Greeks    --  \nStrategies     --  \nCurrent Plays and Ideas      --  \nQ&amp;A  --   \n**New Traders**: See the Options Questions Safe Haven weekly thread",
+                "subscribers": 1293260,
+                "frequency": 5,
+                "score": 0.5730343918875724,
+                "url": "https://www.reddit.com/r/options"
+            },
+            {
+                "display_name_prefixed": "r/thetagang",
+                "title": "selling options",
+                "description": "We are selling options to WSB degenerates using thetagang strategies!  🐌 🐌 🐌",
+                "subscribers": 279971,
+                "frequency": 5,
+                "score": 0.5158108282411545,
+                "url": "https://www.reddit.com/r/thetagang"
+            },
+            {
+                "display_name_prefixed": "r/StockMarket",
+                "title": "r/StockMarket - Reddit's Front Page of the Stock Market",
+                "description": "Welcome to /r/StockMarket! Our objective is to provide short and mid term trade ideas, market analysis &amp; commentary for active traders and investors. Posts about equities, options, forex, futures, analyst upgrades &amp; downgrades, technical and fundamental analysis, and the stock market in general are all welcome.",
+                "subscribers": 3827012,
+                "frequency": 1,
+                "score": 0.31612320350621104,
+                "url": "https://www.reddit.com/r/StockMarket"
+            },
+            {
+                "display_name_prefixed": "r/FinancialPlanning",
+                "title": "Financial Planning, Personal Finance, Frugality, Money, and More!",
+                "description": "Discuss and ask questions about personal finances, budgeting, income, retirement plans, insurance, investing, and frugality.",
+                "subscribers": 958231,
+                "frequency": 2,
+                "score": 0.2541142681075889,
+                "url": "https://www.reddit.com/r/FinancialPlanning"
+            }
+        ]
+    },
+    {
+        "output": {
+            "subject": "Options trading? Saw your comments!",
+            "body": "Finding high-yield option trades can be a grind. Wheel Strategy helps find them fast – it's built by option sellers, for option sellers.\n\nI noticed you were chatting about similar stuff, so thought you might dig it. \n\nWant to try it and tell me what you think? -> wheelstrategyoptions.co\n\nAppreciate your thoughts!"
+        }
+    }
+]
+  const isDebug = true;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
@@ -214,11 +364,16 @@ function App() {
     });
     
     try {
+      // if(isDebug){
+      //   setResults([dummyData[0]])
+      //   return
+      // }
       // Simulate progress steps with random wait times
       for (let i = 0; i < progressSteps.length; i++) {
         setCurrentStep(i);
         await new Promise(resolve => setTimeout(resolve, getRandomWaitTime()));
       }
+
 
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/11fe63b2-cbf2-4010-91c0-6e82441bcc5a', {
         method: 'POST',
@@ -688,7 +843,7 @@ function App() {
                           <h2>Top Subreddits</h2>
                           <p className="ff-section-description">Top subreddits selected based on your pitch, AI-powered keyword search, and subscriber volume.</p>
                           <div className="ff-subreddits-list">
-                            {result.top_subreddits.map((subreddit, idx) => (
+                            {result.top_subreddits.slice(0, 2).map((subreddit, idx) => (
                               <div key={idx} className="ff-subreddit-card">
                                 <div className="ff-subreddit-header">
                                   <h3>
@@ -707,6 +862,29 @@ function App() {
                                 </div>
                               </div>
                             ))}
+                            {result.top_subreddits.length > 2 && (
+                              <BlurredContent title="subreddits">
+                                {result.top_subreddits.slice(2).map((subreddit, idx) => (
+                                  <div key={idx} className="ff-subreddit-card">
+                                    <div className="ff-subreddit-header">
+                                      <h3>
+                                        <a href={subreddit.url} target="_blank" rel="noopener noreferrer">
+                                          {subreddit.display_name_prefixed}
+                                        </a>
+                                      </h3>
+                                      <div className="ff-subreddit-stats">
+                                        <span className="ff-subscriber-count">
+                                          {subreddit.subscribers.toLocaleString()} subscribers
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="ff-subreddit-content">
+                                      <p className="ff-subreddit-description">{subreddit.description}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </BlurredContent>
+                            )}
                           </div>
                         </div>
                       )}
@@ -716,7 +894,7 @@ function App() {
                           <h2>High-fit Reddit users</h2>
                           <p className="ff-section-description">Top Reddit users ranked by engagement and relevance to your pitch, keywords, and subreddits—with reasons for each pick.</p>
                           <div className="ff-authors-list">
-                            {result.top_ranked_authors.map((author, idx) => (
+                            {result.top_ranked_authors.slice(0, 2).map((author, idx) => (
                               <div key={idx} className="ff-author-card">
                                 <div className="ff-author-header">
                                   <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
@@ -724,7 +902,7 @@ function App() {
                                   </a>                                  
                                 </div>
                                 <div className="ff-author-content">
-                                <span className="ff-author-reason">{author.reason}</span>
+                                  <span className="ff-author-reason">{author.reason}</span>
                                 </div>
                                 <div className="ff-author-content">
                                   <div className="ff-author-post">
@@ -737,6 +915,31 @@ function App() {
                                 </div>
                               </div>
                             ))}
+                            {result.top_ranked_authors.length > 2 && (
+                              <BlurredContent title="users">
+                                {result.top_ranked_authors.slice(2).map((author, idx) => (
+                                  <div key={idx} className="ff-author-card">
+                                    <div className="ff-author-header">
+                                      <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
+                                        {author.author}
+                                      </a>                                  
+                                    </div>
+                                    <div className="ff-author-content">
+                                      <span className="ff-author-reason">{author.reason}</span>
+                                    </div>
+                                    <div className="ff-author-content">
+                                      <div className="ff-author-post">
+                                        <h4>Top Post</h4>
+                                        <p className="ff-author-post-title">{author.top_post_title}</p>
+                                        <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-author-link ff-view-post-btn">
+                                          View Post
+                                        </a>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </BlurredContent>
+                            )}
                           </div>
                         </div>
                       )}
@@ -748,7 +951,9 @@ function App() {
                           <div className="ff-dm-content">
                             <h3>{result.output.subject}</h3>
                             <div className="ff-dm-body markdown-content">
-                              <ReactMarkdown>{result.output.body}</ReactMarkdown>
+                              <BlurredContent title="message">
+                                <ReactMarkdown>{result.output.body}</ReactMarkdown>
+                              </BlurredContent>
                             </div>
                           </div>
                           <div className="ff-results-actions">
@@ -901,7 +1106,8 @@ function App() {
                                   
 
                   {/* Waitlist Section */}
-                  <div className="ff-waitlist-section">
+                  {auth.user? (
+                    <div className="ff-waitlist-section">
                     <div className="ff-waitlist-content">
                       <h3>Join the Waitlist</h3>
                       <p>Be the first to know when we launch automated Reddit DM campaigns for your product.</p>
@@ -920,12 +1126,13 @@ function App() {
                             </button> 
                       )}
                     </div>
-                  </div>
+                  </div>):<></>}
+                  {auth.user? (
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
                     <button className="ff-action-btn ff-view-post-btn" onClick={handleSubmit} style={{ minWidth: 140 }}>
                       Regenerate
                     </button>
-                  </div>
+                  </div>):<></>}
                 </div>
               </div>
             </div>
