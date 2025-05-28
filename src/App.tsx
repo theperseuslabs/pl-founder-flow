@@ -663,7 +663,6 @@ function App() {
               <button className="ff-cta-button" onClick={() => handleScrollToSection('reddit-dm-section')}>
                 Try it in seconds
               </button>
-              <p className="ff-cta-support">No setup. No signups. No payments.</p>
               <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
                 e.preventDefault();
                 handleScrollToSection('how-it-works');
