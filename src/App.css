@@ -1624,3 +1624,97 @@
     font-size: 1rem;
   }
 }
+
+.ff-blurred-content {
+  position: relative;
+}
+
+.ff-blurred-content > *:not(.ff-blurred-overlay) {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.ff-blurred-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.ff-blurred-message {
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 101;
+}
+
+.ff-blurred-message h3 {
+  margin: 0 0 1rem 0;
+  color: #1e293b;
+  font-size: 1.2rem;
+}
+
+.ff-google-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 102;
+}
+
+.ff-google-signin-btn:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ff-google-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.ff-auth-error {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ff-auth-error:hover {
+  background-color: #fecaca;
+}
+
+.ff-error-close {
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0.25rem;
+  margin-left: 0.5rem;
+}
