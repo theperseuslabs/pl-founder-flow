@@ -115,6 +115,15 @@ function App() {
 
   const [expandedSubreddits, setExpandedSubreddits] = useState<number[]>([]);
 
+  const [editedDM, setEditedDM] = useState<{
+    subject: string;
+    body: string;
+  } | null>(null);
+
+  const [isSendingToLeads, setIsSendingToLeads] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+
   const progressSteps = [
     `Extracting additional keywords for ${fields.productName}`,
     `Finding top subreddits for ${fields.productName}`,
@@ -180,6 +189,16 @@ function App() {
   useEffect(() => {
     localStorage.setItem('ema_form_data', JSON.stringify(fields));
   }, [fields]);
+
+  useEffect(() => {
+    const lastResult = results[results.length - 1];
+    if (lastResult?.output) {
+      setEditedDM({
+        subject: lastResult.output.subject || '',
+        body: lastResult.output.body || ''
+      });
+    }
+  }, [results]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -699,6 +718,48 @@ function App() {
     );
   };
 
+  const handleDMChange = (field: 'subject' | 'body', value: string) => {
+    setEditedDM(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
+  };
+
+  const handleSendToLeads = async () => {
+    if (!editedDM) return;
+    setShowPricingModal(true);
+  };
+
+  const features = [
+    {
+      title: "Automated Lead Generation",
+      description: "Find and target your ideal customers on Reddit automatically"
+    },
+    {
+      title: "Personalized DM Campaigns",
+      description: "Send customized messages to your target audience"
+    },
+    {
+      title: "Daily Automation",
+      description: "Set up recurring campaigns to reach new users daily"
+    },
+    {
+      title: "Analytics Dashboard",
+      description: "Track your campaign performance and engagement metrics"
+    },
+    {
+      title: "Unlimited Subreddits",
+      description: "Target users across any number of relevant subreddits"
+    },
+    {
+      title: "Priority Support",
+      description: "Get help from our team whenever you need it"
+    }
+  ];
+
   return (
     <div className="ff-root">
       <Clarity />
@@ -963,11 +1024,46 @@ function App() {
                       <h2>AI-generated Reddit DM template</h2>
                       <p className="ff-section-description">We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.</p>
                       <div className="ff-dm-content">
-                        <h3>{results[results.length - 1]?.output?.subject || 'No subject available'}</h3>
-                        <div className="ff-dm-body markdown-content">
-                          <BlurredContent title="message">
-                            <ReactMarkdown>{results[results.length - 1]?.output?.body || 'No message available'}</ReactMarkdown>
-                          </BlurredContent>
+                        <div className="ff-dm-field">
+                          <label htmlFor="dm-subject">Subject</label>
+                          <textarea
+                            id="dm-subject"
+                            value={editedDM?.subject || ''}
+                            onChange={(e) => handleDMChange('subject', e.target.value)}
+                            className="ff-dm-input"
+                            rows={2}
+                            placeholder="Enter DM subject"
+                          />
+                        </div>
+                        <div className="ff-dm-field">
+                          <label htmlFor="dm-body">Message</label>
+                          <textarea
+                            id="dm-body"
+                            value={editedDM?.body || ''}
+                            onChange={(e) => handleDMChange('body', e.target.value)}
+                            className="ff-dm-input"
+                            rows={8}
+                            placeholder="Enter DM message"
+                          />
+                        </div>
+                        <div className="ff-dm-actions">
+                          <button
+                            className="ff-action-btn send-leads-btn"
+                            onClick={handleSendToLeads}
+                            disabled={isSendingToLeads || !editedDM}
+                          >
+                            {isSendingToLeads ? (
+                              <>
+                                <ClipLoader size={20} color="#ffffff" />
+                                <span>Sending...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="ff-action-icon">📨</span>
+                                Send to {results.reduce((sum, result) => sum + (result.top_authors?.length || 0), 0)} leads
+                              </>
+                            )}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -1014,6 +1110,84 @@ function App() {
           </div>
         </div>
       </section>      
+
+      {/* Schedule Modal */}
+      {showScheduleModal && (
+        <div className="ff-modal-overlay">
+          <div className="ff-modal">
+            <h3>Schedule Automated DMs</h3>
+            <p className="ff-modal-description">
+              Would you like to set up automated daily DMs to new relevant users? This will help you continuously engage with your target audience.
+            </p>
+            <div className="ff-modal-actions">
+              <button
+                className="ff-action-btn schedule-btn"
+                onClick={() => {
+                  // Handle scheduling logic
+                  setShowScheduleModal(false);
+                }}
+              >
+                <span className="ff-action-icon">📅</span>
+                Schedule Daily DMs
+              </button>
+              <button
+                className="ff-action-btn cancel-btn"
+                onClick={() => setShowScheduleModal(false)}
+              >
+                Not Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pricing Modal */}
+      {showPricingModal && (
+        <div className="ff-modal-overlay">
+          <div className="ff-pricing-modal">
+            <button 
+              className="ff-close-button"
+              onClick={() => setShowPricingModal(false)}
+            >
+              ×
+            </button>
+            <div className="ff-pricing-header">
+              <h2>Start Growing Your Business</h2>
+              <p className="ff-pricing-subtitle">Get access to all features and start reaching your ideal customers today</p>
+            </div>
+            
+            <div className="ff-pricing-card">
+              <div className="ff-pricing-badge">Most Popular</div>
+              <div className="ff-pricing-amount">
+                <span className="ff-currency">$</span>
+                <span className="ff-price">9.99</span>
+                <span className="ff-period">/month</span>
+              </div>
+              <ul className="ff-features-list">
+                {features.map((feature, index) => (
+                  <li key={index}>
+                    <span className="ff-feature-icon">✓</span>
+                    <div className="ff-feature-content">
+                      <h4>{feature.title}</h4>
+                      <p>{feature.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <button 
+                className="ff-action-btn subscribe-btn"
+                onClick={() => {
+                  // Handle subscription logic
+                  setShowPricingModal(false);
+                }}
+              >
+                Subscribe Now
+              </button>
+              <p className="ff-pricing-note">Cancel anytime. No hidden fees.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

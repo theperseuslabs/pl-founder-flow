@@ -1397,3 +1397,471 @@
     font-size: 0.9rem;
   }
 }
+
+.ff-dm-template {
+  background: #fff;
+  border-radius: 1.2rem;
+  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  margin-top: 3rem;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ff-dm-template h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ff-dm-template h2::before {
+  content: '🤖';
+  font-size: 1.5rem;
+}
+
+.ff-dm-template .ff-section-description {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+  max-width: 800px;
+}
+
+.ff-dm-content {
+  background: #f8fafc;
+  border-radius: 1rem;
+  padding: 2rem;
+  border: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.ff-dm-content h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ff-dm-body {
+  background: white;
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  margin-top: 1rem;
+}
+
+.ff-dm-body p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+  color: #334155;
+  font-size: 1.05rem;
+}
+
+.ff-dm-body p:last-child {
+  margin-bottom: 0;
+}
+
+.ff-results-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ff-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-radius: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  flex: 1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ff-action-icon {
+  font-size: 1.3em;
+}
+
+.ff-action-btn.reddit-btn {
+  background: #FF4500;
+  color: white;
+}
+
+.ff-action-btn.reddit-btn:hover {
+  background: #e03d00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 69, 0, 0.15);
+}
+
+.ff-action-btn.email-btn {
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.ff-action-btn.email-btn:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 600px) {
+  .ff-dm-template {
+    margin-top: 2rem;
+    padding: 1.5rem;
+  }
+
+  .ff-dm-template h2 {
+    font-size: 1.5rem;
+  }
+
+  .ff-dm-template .ff-section-description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ff-dm-content {
+    padding: 1.5rem;
+  }
+
+  .ff-dm-body {
+    padding: 1.2rem;
+  }
+
+  .ff-dm-body p {
+    font-size: 1rem;
+  }
+
+  .ff-results-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .ff-action-btn {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    font-size: 1rem;
+  }
+}
+
+.ff-dm-field {
+  margin-bottom: 1.5rem;
+}
+
+.ff-dm-field:last-child {
+  margin-bottom: 0;
+}
+
+.ff-dm-field label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+}
+
+.ff-dm-input {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.8rem;
+  font-size: 1rem;
+  color: #1e293b;
+  background: #fff;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+  transition: all 0.2s ease;
+}
+
+.ff-dm-input:focus {
+  outline: none;
+  border-color: #FF4500;
+  box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.1);
+}
+
+.ff-dm-input:hover {
+  border-color: #cbd5e1;
+}
+
+.ff-dm-input::placeholder {
+  color: #94a3b8;
+}
+
+@media (max-width: 600px) {
+  .ff-dm-field {
+    margin-bottom: 1rem;
+  }
+
+  .ff-dm-input {
+    padding: 0.8rem;
+    font-size: 0.95rem;
+  }
+}
+
+.ff-dm-actions {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.ff-action-btn.send-leads-btn {
+  background: #FF4500;
+  color: white;
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.ff-action-btn.send-leads-btn:hover:not(:disabled) {
+  background: #e03d00;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 69, 0, 0.15);
+}
+
+.ff-action-btn.send-leads-btn:disabled {
+  background: #ffa07a;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.ff-action-btn.schedule-btn {
+  background: #4f46e5;
+  color: white;
+}
+
+.ff-action-btn.schedule-btn:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+.ff-action-btn.cancel-btn {
+  background: #f8fafc;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+}
+
+.ff-action-btn.cancel-btn:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 600px) {
+  .ff-dm-actions {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .ff-action-btn.send-leads-btn {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}
+
+.ff-pricing-modal {
+  background: #fff;
+  border-radius: 1.2rem;
+  padding: 1.8rem;
+  max-width: 480px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.ff-close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.ff-close-button:hover {
+  color: #1e293b;
+}
+
+.ff-pricing-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.ff-pricing-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.ff-pricing-subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ff-pricing-card {
+  background: #f8fafc;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  position: relative;
+  border: 1px solid #e2e8f0;
+}
+
+.ff-pricing-badge {
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FF4500;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 1.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ff-pricing-amount {
+  text-align: center;
+  margin: 1.2rem 0 1.5rem;
+  color: #1e293b;
+}
+
+.ff-currency {
+  font-size: 1.2rem;
+  font-weight: 600;
+  vertical-align: top;
+  margin-right: 0.25rem;
+}
+
+.ff-price {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ff-period {
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-left: 0.25rem;
+}
+
+.ff-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+}
+
+.ff-features-list li {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ff-feature-icon {
+  color: #22c55e;
+  font-size: 1rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.ff-feature-content h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.ff-feature-content p {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ff-action-btn.subscribe-btn {
+  background: #FF4500;
+  color: white;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.7rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ff-pricing-note {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8rem;
+  margin: 0.75rem 0 0 0;
+}
+
+@media (max-width: 600px) {
+  .ff-pricing-modal {
+    padding: 1.2rem;
+    width: 95%;
+  }
+
+  .ff-pricing-header h2 {
+    font-size: 1.3rem;
+  }
+
+  .ff-pricing-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .ff-pricing-card {
+    padding: 1.2rem;
+  }
+
+  .ff-price {
+    font-size: 2.5rem;
+  }
+
+  .ff-features-list li {
+    padding: 0.6rem 0;
+  }
+
+  .ff-feature-content h4 {
+    font-size: 0.9rem;
+  }
+
+  .ff-feature-content p {
+    font-size: 0.8rem;
+  }
+
+  .ff-action-btn.subscribe-btn {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+}
