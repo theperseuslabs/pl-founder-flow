@@ -7,36 +7,34 @@ import Clarity from './components/Clarity';
 import { useAuth } from '@/lib/firebase/AuthContext';
 import { BlurredContent } from '@/components/BlurredContent';
 
-interface Subreddit {
-  display_name_prefixed: string;
-  subscribers: number;
-  accounts_active: number;
-  description: string;
-  url: string;
-  matches: number;
-}
-
 interface TopAuthor {
   author: string;
-  avg_score: number;
-  avg_upvote_ratio: number;
-  rank_score: number;
-  reason: string;
   total_posts: number;
+  subreddit: string;
   profile_url: string;
   top_post_title: string;
   url: string;
 }
 
+interface Subreddit {
+  display_name_prefixed: string;
+  title: string;
+  description: string;
+  subscribers: number;
+  top_authors: TopAuthor[];
+}
+
 interface Output {
   subject: string;
   body: string;
-  custRedditHandle: string;
 }
 
 interface ApiResponse {
-  top_ranked_authors?: TopAuthor[];
-  top_subreddits?: Subreddit[];
+  display_name_prefixed?: string;
+  title?: string;
+  description?: string;
+  subscribers?: number;
+  top_authors?: TopAuthor[];
   output?: Output;
 }
 
@@ -49,12 +47,9 @@ function App() {
       productName: '',
       productUrl: '',
       problemSolved: '',
-      elevatorPitch: '',
-      keywords: '',
       ask: '',
       redditHandle: '',
       email: '',
-      subreddit: '',
     };
 
     // Only try to load from localStorage on the client side
@@ -77,12 +72,9 @@ function App() {
     productName: false,
     productUrl: false,
     problemSolved: false,
-    elevatorPitch: false,
-    keywords: false,
     ask: false,
     redditHandle: false,
     email: false,
-    subreddit: false,
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -104,6 +96,24 @@ function App() {
   const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
   const [waitlistSuccess, setWaitlistSuccess] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [deliverablesResponse, setDeliverablesResponse] = useState<{
+    product_name: string;
+    outcome: string;
+    offering: string;
+    differentiator: string;
+  } | null>(null);
+
+  const [editedDeliverables, setEditedDeliverables] = useState<{
+    product_name: string;
+    outcome: string;
+    offering: string;
+    differentiator: string;
+  } | null>(null);
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  const [expandedSubreddits, setExpandedSubreddits] = useState<number[]>([]);
 
   const progressSteps = [
     `Extracting additional keywords for ${fields.productName}`,
@@ -356,39 +366,31 @@ function App() {
     track('Form Submission', {
       product_name: fields.productName,
       has_url: !!fields.productUrl,
-      pitch_length: fields.elevatorPitch.length,
-      has_keywords: !!fields.keywords,
-      has_subreddit: !!fields.subreddit,
       user_id: getUserId(),
       timestamp: new Date().toISOString()
     });
     
     try {
-      // if(isDebug){
-      //   setResults([dummyData[0]])
-      //   return
-      // }
       // Simulate progress steps with random wait times
       for (let i = 0; i < progressSteps.length; i++) {
         setCurrentStep(i);
         await new Promise(resolve => setTimeout(resolve, getRandomWaitTime()));
       }
 
-
-      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/11fe63b2-cbf2-4010-91c0-6e82441bcc5a', {
+      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/generate_deliverables', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prod_biz_name: fields.productName,
-          prod_URL: fields.productUrl,
-          pitch: fields.elevatorPitch,
-          problem: fields.problemSolved,
-          keywords: fields.keywords,
-          ask: fields.ask,
-          custRedditHandle: fields.redditHandle,
-          custEmailAddress: fields.email
+          output: {
+            product_name: editedDeliverables?.product_name || fields.productName,
+            outcome: editedDeliverables?.outcome || '',
+            offering: editedDeliverables?.offering || '',
+            differentiator: editedDeliverables?.differentiator || '',
+            prod_url: fields.productUrl,
+            cta: fields.ask
+          }
         }),
       });
       
@@ -401,9 +403,8 @@ function App() {
 
       // Track successful results with user ID
       track('Results Generated', {
-        has_subreddits: !!data[0]?.top_subreddits,
-        has_authors: !!data[0]?.top_ranked_authors,
-        has_dm_template: !!data[0]?.output,
+        has_subreddits: data.length > 0,
+        has_message: !!data[data.length - 1]?.output,
         user_id: getUserId(),
         timestamp: new Date().toISOString()
       });
@@ -458,30 +459,25 @@ function App() {
   const handleEmailResults = () => {
     const subject = "Your Reddit DM Campaign Results";
     const body = `Here are your Reddit DM campaign results:\n\n` +
-      `Product: ${fields.productName}\n` +
-      `Subreddit: ${fields.subreddit}\n\n` +
-      `Top Ranked Authors:\n` +
-      results.map(result => 
-        result.top_ranked_authors?.map(author => 
-          `- ${author.author} (Rank Score: ${(author.rank_score * 100).toFixed(1)}%)\n` +
-          `  Top Post: ${author.top_post_title}\n` +
-          `  Profile: ${author.profile_url}\n`
-        ).join('\n')
-      ).join('\n') +
-      `\nRecommended Subreddits:\n` +
-      results.map(result => 
-        result.top_subreddits?.map(sub => 
-          `- ${sub.display_name_prefixed} (${sub.subscribers.toLocaleString()} subscribers)\n` +
-          `  ${sub.description}\n`
-        ).join('\n')
-      ).join('\n') +
+      `Product: ${fields.productName}\n\n` +
+      `Top Subreddits and Authors:\n` +
+      results.map(result => {
+        if (!result.display_name_prefixed) return '';
+        return `- ${result.display_name_prefixed}\n` +
+          `  Subscribers: ${result.subscribers?.toLocaleString() || 'N/A'}\n` +
+          `  Description: ${result.description || 'N/A'}\n\n` +
+          `  Top Authors:\n` +
+          (result.top_authors?.map(author => 
+            `    - ${author.author.replace('t2_', '')}\n` +
+            `      Top Post: ${author.top_post_title}\n` +
+            `      Profile: ${author.profile_url}\n`
+          ).join('\n') || 'No authors found') + '\n\n';
+      }).join('\n') +
       `\nDM Template:\n` +
-      results.map(result => 
-        result.output ? 
-          `Subject: ${result.output.subject}\n\n` +
-          `${result.output.body}\n` :
-          ''
-      ).join('\n');
+      (results[results.length - 1]?.output ? 
+        `Subject: ${results[results.length - 1].output?.subject || 'No subject available'}\n\n` +
+        `${results[results.length - 1].output?.body || 'No message available'}\n` :
+        'No DM template available');
 
     window.location.href = `mailto:${fields.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
@@ -642,6 +638,67 @@ function App() {
     }
   };
 
+  const handleDeliverableChange = (field: string, value: string) => {
+    setEditedDeliverables(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
+  };
+
+  const handleWebsiteAnalysis = async () => {
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    
+    try {
+      // Ensure URL has https:// prefix
+      const productUrl = fields.productUrl.startsWith('http') 
+        ? fields.productUrl 
+        : `https://${fields.productUrl}`;
+
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
+
+      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/generate_elevatorPitch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prod_url: productUrl,
+          prod_name: fields.productName
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error('Failed to generate deliverables');
+      }
+
+      const data = await response.json();
+      setDeliverablesResponse(data.output);
+      setEditedDeliverables(data.output);
+    } catch (error) {
+      setAnalysisError('Something went wrong, please check if your website URL is correct?');
+      console.error('Error generating deliverables:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const toggleSubreddit = (index: number) => {
+    setExpandedSubreddits(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
   return (
     <div className="ff-root">
       <Clarity />
@@ -662,8 +719,7 @@ function App() {
             <div className="ff-hero-cta">
               <button className="ff-cta-button" onClick={() => handleScrollToSection('reddit-dm-section')}>
                 Try it in seconds
-              </button>
-              <p className="ff-cta-support">No setup. No signups. No payments.</p>
+              </button>              
               <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
                 e.preventDefault();
                 handleScrollToSection('how-it-works');
@@ -721,27 +777,66 @@ function App() {
                   />
                   <span className="ff-char-count" suppressHydrationWarning>{fields.productUrl.length}/100</span>
                 </div>
-              </div>
-
-              <div className="ff-form-group">
-                <label htmlFor="elevatorPitch">Elevator Pitch *</label>
-                <div className="ff-input-wrap textarea-wrap">
-                  <span className="ff-input-icon">💡</span>
-                  <textarea
-                    id="elevatorPitch"
-                    name="elevatorPitch"
-                    placeholder="Please provide the best description of what your product/business does/offers"
-                    value={fields.elevatorPitch}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    maxLength={500}
-                    className={touched.elevatorPitch && fields.elevatorPitch.length < 50 ? 'invalid' : ''}
-                    required
-                  />
-                  <span className="ff-char-count" suppressHydrationWarning>{fields.elevatorPitch.length}/500</span>
-                </div>
-                {touched.elevatorPitch && fields.elevatorPitch.length < 50 && (
-                  <div className="ff-error">Minimum 50 characters required</div>
+                <button 
+                  type="button"
+                  onClick={handleWebsiteAnalysis}
+                  className="ff-input-btn"
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <ClipLoader size={20} color="#ffffff" />
+                      <span style={{ marginLeft: '8px' }}>Analyzing...</span>
+                    </>
+                  ) : 'Get Website Analysis'}
+                </button>
+                {analysisError && (
+                  <div className="ff-error-message" style={{ marginTop: '1rem' }}>
+                    {analysisError}
+                  </div>
+                )}
+                {deliverablesResponse && (
+                  <div className="ff-deliverables-response">
+                    <h4>Your Product Analysis</h4>
+                    <div className="ff-deliverables-grid">
+                      <div className="ff-deliverable-item">
+                        <h5>Product Name</h5>
+                        <textarea
+                          value={editedDeliverables?.product_name || ''}
+                          onChange={(e) => handleDeliverableChange('product_name', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={2}
+                        />
+                      </div>
+                      <div className="ff-deliverable-item">
+                        <h5>Outcome</h5>
+                        <textarea
+                          value={editedDeliverables?.outcome || ''}
+                          onChange={(e) => handleDeliverableChange('outcome', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="ff-deliverable-item">
+                        <h5>Offering</h5>
+                        <textarea
+                          value={editedDeliverables?.offering || ''}
+                          onChange={(e) => handleDeliverableChange('offering', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={4}
+                        />
+                      </div>
+                      <div className="ff-deliverable-item">
+                        <h5>Differentiator</h5>
+                        <textarea
+                          value={editedDeliverables?.differentiator || ''}
+                          onChange={(e) => handleDeliverableChange('differentiator', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={4}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -767,60 +862,20 @@ function App() {
               </div>
             </div>
 
-            <div className="ff-form-section">
-              <h3 className="ff-form-section-title">Additional Optional Targeting Info</h3>
-
-              <div className="ff-form-group">
-                <label htmlFor="keywords">Keywords</label>
-                <div className="ff-input-wrap">
-                  <span className="ff-input-icon">🔑</span>
-                  <input
-                    id="keywords"
-                    name="keywords"
-                    type="text"
-                    placeholder="Enter comma-separated keywords your users might search"
-                    value={fields.keywords}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    maxLength={100}
-                  />
-                  <span className="ff-char-count" suppressHydrationWarning>{fields.keywords.length}/100</span>
-                </div>
-                <div className="ff-helper-text">Enter comma-separated keywords your users might search - optional, but improves targeting.</div>
-              </div>
-
-              <div className="ff-form-group">
-                <label htmlFor="subreddit">Top Subreddit</label>
-                <div className="ff-input-wrap">
-                  <span className="ff-input-icon">🔍</span>
-                  <input
-                    id="subreddit"
-                    name="subreddit"
-                    type="text"
-                    placeholder="e.g. startups (without r/)"
-                    value={fields.subreddit}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    maxLength={30}
-                  />
-                  <span className="ff-char-count" suppressHydrationWarning>{fields.subreddit.length}/30</span>
-                </div>
-                <div className="ff-helper-text">Enter ONE subreddit (no r/) where your ideal customers hang out - optional, but helps with targeting.</div>
-              </div>
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={!isFormValid || submitted || loading} 
-              className={`ff-submit-btn ${isFormValid ? 'active' : ''} ${isSubmitting ? 'loading' : ''}`}
-            >
-              {isSubmitting ? (
-                <>
-                  <ClipLoader size={20} color="#ffffff" />
-                  <span style={{ marginLeft: '8px' }}>Processing...</span>
-                </>
-              ) : submitted ? 'Submitted!' : 'Submit'}              
-            </button>
+            {deliverablesResponse && (
+              <button 
+                type="submit" 
+                disabled={!isFormValid || submitted || loading} 
+                className={`ff-submit-btn ${isFormValid ? 'active' : ''} ${isSubmitting ? 'loading' : ''}`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <ClipLoader size={20} color="#ffffff" />
+                    <span style={{ marginLeft: '8px' }}>Processing...</span>
+                  </>
+                ) : submitted ? 'Submitted!' : 'Submit'}              
+              </button>
+            )}
           </form>
           
           {error && (
@@ -834,305 +889,89 @@ function App() {
           {results.length > 0 && (
             <div>              
               <div className="ff-output-section">
-                <h2 className="ff-section-header">Output</h2>
+                <h2 className="ff-section-header">Top Subreddits</h2>
                 <div className="ff-results">                
-                  {results.map((result, index) => (
-                    <div key={index} className="ff-result-section">
-                      {result.top_subreddits && (
-                        <div className="ff-subreddits">
-                          <h2>Top Subreddits</h2>
-                          <p className="ff-section-description">Top subreddits selected based on your pitch, AI-powered keyword search, and subscriber volume.</p>
-                          <div className="ff-subreddits-list">
-                            {result.top_subreddits.slice(0, 2).map((subreddit, idx) => (
-                              <div key={idx} className="ff-subreddit-card">
-                                <div className="ff-subreddit-header">
-                                  <h3>
-                                    <a href={subreddit.url} target="_blank" rel="noopener noreferrer">
-                                      {subreddit.display_name_prefixed}
-                                    </a>
-                                  </h3>
-                                  <div className="ff-subreddit-stats">
-                                    <span className="ff-subscriber-count">
-                                      {subreddit.subscribers.toLocaleString()} subscribers
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="ff-subreddit-content">
-                                  <p className="ff-subreddit-description">{subreddit.description}</p>
-                                </div>
+                  {results.map((result, index) => {
+                    // Skip the last element which contains the message
+                    if (index === results.length - 1) return null;
+                    
+                    const isExpanded = expandedSubreddits.includes(index);
+                    const potentialCustomers = result.top_authors?.length || 0;
+                    
+                    return (
+                      <div key={index} className="ff-result-section">
+                        <div className={`ff-subreddit-card ${isExpanded ? 'expanded' : ''}`}>
+                          <div 
+                            className="ff-subreddit-header"
+                            onClick={() => toggleSubreddit(index)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className="ff-subreddit-header-content">
+                              <h3>
+                                <a href={`https://reddit.com${result.display_name_prefixed}`} target="_blank" rel="noopener noreferrer">
+                                  {result.display_name_prefixed}
+                                </a>
+                              </h3>
+                              <div className="ff-subreddit-stats">                                
+                                <span className="ff-potential-customers">
+                                  Found {potentialCustomers} leads from recently active users
+                                </span>
                               </div>
-                            ))}
-                            {result.top_subreddits.length > 2 && (
-                              <BlurredContent title="subreddits">
-                                {result.top_subreddits.slice(2).map((subreddit, idx) => (
-                                  <div key={idx} className="ff-subreddit-card">
-                                    <div className="ff-subreddit-header">
-                                      <h3>
-                                        <a href={subreddit.url} target="_blank" rel="noopener noreferrer">
-                                          {subreddit.display_name_prefixed}
-                                        </a>
-                                      </h3>
-                                      <div className="ff-subreddit-stats">
-                                        <span className="ff-subscriber-count">
-                                          {subreddit.subscribers.toLocaleString()} subscribers
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className="ff-subreddit-content">
-                                      <p className="ff-subreddit-description">{subreddit.description}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </BlurredContent>
-                            )}
+                            </div>
+                            <div className="ff-expand-icon">
+                              {isExpanded ? '−' : '+'}
+                            </div>
                           </div>
+                          {isExpanded && (
+                            <>
+                              <div className="ff-subreddit-content">
+                              <p className="ff-subscriber-count">
+                                  {result.subscribers?.toLocaleString() || 'N/A'} subscribers
+                                </p>
+                                <p className="ff-subreddit-description">{result.description}</p>
+                              </div>
+                              {result.top_authors && result.top_authors.length > 0 && (
+                                <div className="ff-top-authors">
+                                  <h4>Top Users</h4>
+                                  <ul className="ff-authors-list">
+                                    {result.top_authors.map((author, idx) => (
+                                      <li key={idx} className="ff-author-item">
+                                        <div className="ff-author-info">
+                                          <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
+                                            {author.author.replace('t2_', '')}
+                                          </a>
+                                          <p className="ff-author-post-title">{author.top_post_title}</p>
+                                          <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-view-post-link">
+                                            View Post
+                                          </a>
+                                        </div>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    );
+                  })}
 
-                      {result.top_ranked_authors && (
-                        <div className="ff-authors">
-                          <h2>High-fit Reddit users</h2>
-                          <p className="ff-section-description">Top Reddit users ranked by engagement and relevance to your pitch, keywords, and subreddits—with reasons for each pick.</p>
-                          <div className="ff-authors-list">
-                            {result.top_ranked_authors.slice(0, 2).map((author, idx) => (
-                              <div key={idx} className="ff-author-card">
-                                <div className="ff-author-header">
-                                  <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
-                                    {author.author}
-                                  </a>                                  
-                                </div>
-                                <div className="ff-author-content">
-                                  <span className="ff-author-reason">{author.reason}</span>
-                                </div>
-                                <div className="ff-author-content">
-                                  <div className="ff-author-post">
-                                    <h4>Top Post</h4>
-                                    <p className="ff-author-post-title">{author.top_post_title}</p>
-                                    <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-author-link ff-view-post-btn">
-                                      View Post
-                                    </a>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                            {result.top_ranked_authors.length > 2 && (
-                              <BlurredContent title="users">
-                                {result.top_ranked_authors.slice(2).map((author, idx) => (
-                                  <div key={idx} className="ff-author-card">
-                                    <div className="ff-author-header">
-                                      <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
-                                        {author.author}
-                                      </a>                                  
-                                    </div>
-                                    <div className="ff-author-content">
-                                      <span className="ff-author-reason">{author.reason}</span>
-                                    </div>
-                                    <div className="ff-author-content">
-                                      <div className="ff-author-post">
-                                        <h4>Top Post</h4>
-                                        <p className="ff-author-post-title">{author.top_post_title}</p>
-                                        <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-author-link ff-view-post-btn">
-                                          View Post
-                                        </a>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </BlurredContent>
-                            )}
-                          </div>
+                  {/* Message Section */}
+                  {results[results.length - 1]?.output && (
+                    <div className="ff-dm-template">
+                      <h2>AI-generated Reddit DM template</h2>
+                      <p className="ff-section-description">We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.</p>
+                      <div className="ff-dm-content">
+                        <h3>{results[results.length - 1]?.output?.subject || 'No subject available'}</h3>
+                        <div className="ff-dm-body markdown-content">
+                          <BlurredContent title="message">
+                            <ReactMarkdown>{results[results.length - 1]?.output?.body || 'No message available'}</ReactMarkdown>
+                          </BlurredContent>
                         </div>
-                      )}
-
-                      {result.output && (
-                        <div className="ff-dm-template">
-                          <h2>AI-generated Reddit DM template</h2>
-                          <p className="ff-section-description">We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.</p>
-                          <div className="ff-dm-content">
-                            <h3>{result.output.subject}</h3>
-                            <div className="ff-dm-body markdown-content">
-                              <BlurredContent title="message">
-                                <ReactMarkdown>{result.output.body}</ReactMarkdown>
-                              </BlurredContent>
-                            </div>
-                          </div>
-                          <div className="ff-results-actions">
-                            <button 
-                              className={`ff-action-btn reddit-btn`}
-                              onClick={() => setShowRedditModal(true)}
-                            >
-                              <span className="ff-action-icon">💬</span>
-                              Send it me as Reddit DM
-                            </button>
-                            <button 
-                              className={`ff-action-btn email-btn`}
-                              onClick={() => setShowEmailModal(true)}
-                            >
-                              <span className="ff-action-icon">✉️</span>
-                              Email it to me
-                            </button>
-                          </div>
-                          {/* Email Modal */}
-                          {showEmailModal && (
-                            <div className="ff-modal-overlay">
-                              <div className="ff-modal">
-                                <h3>Enter your email</h3>
-                                <p className="ff-modal-description">We'll send the Reddit DM template to your email address.</p>
-                                <input
-                                  type="email"
-                                  value={emailInput}
-                                  onChange={e => {
-                                    setEmailInput(e.target.value);
-                                    setEmailError('');
-                                  }}
-                                  placeholder="Enter your email"
-                                  className={emailError ? 'invalid' : ''}
-                                />
-                                {emailError && <div className="ff-modal-error">{emailError}</div>}
-                                <div className="ff-modal-actions">
-                                  <button 
-                                    onClick={handleEmailSubmit}
-                                    className={`ff-action-btn email-btn ${isSendingEmail ? 'loading' : ''}`}
-                                    disabled={isSendingEmail || !emailInput.trim()}
-                                  >
-                                    {isSendingEmail ? (
-                                      <>
-                                        <ClipLoader size={20} color="#ffffff" />
-                                        <span style={{ marginLeft: '8px' }}>Sending...</span>
-                                      </>
-                                    ) : 'Send Email'}
-                                  </button>
-                                  <button 
-                                    onClick={() => setShowEmailModal(false)} 
-                                    className="ff-action-btn"
-                                    disabled={isSendingEmail}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          {/* Reddit Handle Modal */}
-                          {showRedditModal && (
-                            <div className="ff-modal-overlay">
-                              <div className="ff-modal">
-                                <h3>Enter your Reddit handle</h3>
-                                <input
-                                  type="text"
-                                  value={redditHandleInput}
-                                  onChange={e => {
-                                    setRedditHandleInput(e.target.value);
-                                    if (e.target.value.trim() === '') {
-                                      setRedditHandleError('Reddit handle is required');
-                                    } else {
-                                      setRedditHandleError('');
-                                    }
-                                  }}
-                                  placeholder="Reddit handle"
-                                  className={redditHandleError ? 'invalid' : ''}
-                                  required
-                                />
-                                {redditHandleError && <div className="ff-modal-error">{redditHandleError}</div>}
-                                <div className="ff-modal-actions">
-                                  <button 
-                                    onClick={handleRedditDM} 
-                                    className={`ff-action-btn reddit-btn ${isSendingDM ? 'loading' : ''}`}
-                                    disabled={isSendingDM || !redditHandleInput.trim()}
-                                  >
-                                    {isSendingDM ? (
-                                      <>
-                                        <ClipLoader size={20} color="#ffffff" />
-                                        <span style={{ marginLeft: '8px' }}>Sending...</span>
-                                      </>
-                                    ) : 'Send'}
-                                  </button>
-                                  <button 
-                                    onClick={() => setShowRedditModal(false)} 
-                                    className="ff-action-btn email-btn"
-                                    disabled={isSendingDM}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          {/* Waitlist Modal */}
-                          {showWaitlistModal && (
-                            <div className="ff-modal-overlay">
-                              <div className="ff-modal">
-                                <h3>Join the Waitlist</h3>
-                                <p className="ff-modal-description">Be the first to know when we launch automated Reddit DM campaigns.</p>
-                                <input
-                                  type="email"
-                                  value={waitlistEmail}
-                                  onChange={e => {
-                                    setWaitlistEmail(e.target.value);
-                                    setWaitlistEmailError('');
-                                  }}
-                                  placeholder="Enter your email"
-                                  className={waitlistEmailError ? 'invalid' : ''}
-                                />
-                                {waitlistEmailError && <div className="ff-modal-error">{waitlistEmailError}</div>}
-                                <div className="ff-modal-actions">
-                                  <button 
-                                    onClick={handleWaitlistSubmit}
-                                    className={`ff-action-btn waitlist-btn ${isSubmittingWaitlist ? 'loading' : ''}`}
-                                    disabled={isSubmittingWaitlist || !waitlistEmail.trim()}
-                                  >
-                                    {isSubmittingWaitlist ? (
-                                      <>
-                                        <ClipLoader size={20} color="#ffffff" />
-                                        <span style={{ marginLeft: '8px' }}>Joining...</span>
-                                      </>
-                                    ) : 'Join Waitlist'}
-                                  </button>
-                                  <button 
-                                    onClick={() => setShowWaitlistModal(false)} 
-                                    className="ff-action-btn email-btn"
-                                    disabled={isSubmittingWaitlist}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  ))}
-                                  
-
-                  {/* Waitlist Section */}
-                  {auth.user? (
-                    <div className="ff-waitlist-section">
-                    <div className="ff-waitlist-content">
-                      <h3>Join the Waitlist</h3>
-                      <p>Be the first to know when we launch automated Reddit DM campaigns for your product.</p>
-                      {waitlistSuccess ? (
-                        <div className="ff-waitlist-success">
-                          <span className="ff-success-icon">✓</span>
-                          <p>Thanks for joining! We'll notify you when we launch.</p>
-                        </div>
-                      ) : (
-                        <button 
-                              className={`ff-action-btn waitlist-btn`}
-                              onClick={() => setShowWaitlistModal(true)}
-                            >
-                              <span className="ff-action-icon">🚀</span>
-                              Join Waitlist
-                            </button> 
-                      )}
-                    </div>
-                  </div>):<></>}
-                  {auth.user? (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' }}>
-                    <button className="ff-action-btn ff-view-post-btn" onClick={handleSubmit} style={{ minWidth: 140 }}>
-                      Regenerate
-                    </button>
-                  </div>):<></>}
+                  )}
                 </div>
               </div>
             </div>
