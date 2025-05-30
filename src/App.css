@@ -139,9 +139,34 @@
   margin: 0.5rem 0 1rem 0;
 }
 .ff-hero-sub {
-  color: #888;
+  color: #64748b;
   font-size: 1.1rem;
-  margin-bottom: 0.7rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+.ff-hero-features {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  text-align: left;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ff-hero-features li {
+  color: #1e293b;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+  padding-left: 0.5rem;
+}
+.ff-hero-features li:last-child {
+  margin-bottom: 0;
+}
+.ff-cta-note {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin: 0.5rem 0;
   text-align: center;
 }
 .ff-input-btn {
@@ -359,7 +384,7 @@
     border-radius: 1.2rem;
   }
   .ff-hero-text h1 {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
   }
   .ff-hero-content {
     flex-direction: column;
@@ -387,6 +412,20 @@
     width: 100%;
     font-size: 1rem;
     padding: 0.8rem 0;
+  }
+  .ff-hero-sub {
+    font-size: 1rem;
+    margin: 0.8rem 0;
+  }
+  .ff-hero-features {
+    margin: 1.2rem 0;
+  }
+  .ff-hero-features li {
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+  }
+  .ff-cta-note {
+    font-size: 0.9rem;
   }
 }
 
@@ -805,6 +844,18 @@
   font-size: 1.1rem;
   margin: 0.5rem 0 2rem 0;
   text-align: left;
+  line-height: 1.6;
+}
+
+.ff-subreddit-count {
+  display: block;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #f0fdf4;
+  color: #166534;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 @media (max-width: 600px) {
@@ -813,9 +864,9 @@
     margin: 0.5rem 0 1.5rem 0;
   }
   
-  .ff-subreddit-card {
-    padding: 1.2rem;
-    margin-bottom: 1rem;
+  .ff-subreddit-count {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
   }
 }
 
@@ -1406,6 +1457,9 @@
   margin-top: 3rem;
   position: relative;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ff-dm-template h2 {
@@ -1434,9 +1488,11 @@
 .ff-dm-content {
   background: #f8fafc;
   border-radius: 1rem;
-  padding: 2rem;
+  padding: 1.5rem;
   border: 1px solid #e2e8f0;
   position: relative;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .ff-dm-content h3 {
@@ -1520,8 +1576,8 @@
 
 @media (max-width: 600px) {
   .ff-dm-template {
+    padding: 1.2rem;
     margin-top: 2rem;
-    padding: 1.5rem;
   }
 
   .ff-dm-template h2 {
@@ -1534,7 +1590,7 @@
   }
 
   .ff-dm-content {
-    padding: 1.5rem;
+    padding: 1.2rem;
   }
 
   .ff-dm-body {
@@ -1559,6 +1615,9 @@
 
 .ff-dm-field {
   margin-bottom: 1.5rem;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ff-dm-field:last-child {
@@ -1575,15 +1634,15 @@
 
 .ff-dm-input {
   width: 100%;
-  padding: 1rem;
+  padding: 0.8rem;
   border: 1px solid #e2e8f0;
   border-radius: 0.8rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #1e293b;
   background: #fff;
   resize: vertical;
   font-family: inherit;
-  line-height: 1.6;
+  line-height: 1.5;
   transition: all 0.2s ease;
 }
 
@@ -1607,8 +1666,8 @@
   }
 
   .ff-dm-input {
-    padding: 0.8rem;
-    font-size: 0.95rem;
+    padding: 0.7rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -1616,6 +1675,9 @@
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e2e8f0;
+  max-width: 450px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ff-action-btn.send-leads-btn {
@@ -1864,4 +1926,192 @@
     padding: 0.9rem;
     font-size: 0.95rem;
   }
+}
+
+.ff-dm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.ff-dm-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ff-edit-toggle {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 0.5rem;
+}
+
+.ff-edit-toggle:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.ff-dm-preview {
+  background: white;
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.ff-dm-preview-subject,
+.ff-dm-preview-body {
+  margin-bottom: 1.5rem;
+}
+
+.ff-dm-preview-subject:last-child,
+.ff-dm-preview-body:last-child {
+  margin-bottom: 0;
+}
+
+.ff-dm-preview h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0 0 0.5rem 0;
+}
+
+.ff-dm-preview p {
+  font-size: 1rem;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 600px) {
+  .ff-dm-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .ff-edit-toggle {
+    font-size: 1.1rem;
+    width: 28px;
+    height: 28px;
+    padding: 0.3rem;
+  }
+
+  .ff-dm-preview {
+    padding: 1.2rem;
+  }
+
+  .ff-dm-preview h4 {
+    font-size: 0.9rem;
+  }
+
+  .ff-dm-preview p {
+    font-size: 0.95rem;
+  }
+}
+
+.ff-dm-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.ff-dm-field-header label,
+.ff-dm-field-header h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.ff-edit-toggle {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.4rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 0.5rem;
+}
+
+.ff-edit-toggle:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .ff-edit-toggle {
+    font-size: 1.1rem;
+    width: 28px;
+    height: 28px;
+    padding: 0.3rem;
+  }
+}
+
+.ff-signin-prompt {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.ff-signin-prompt .ff-google-signin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.7rem;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ff-signin-prompt .ff-google-signin-btn:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 600px) {
+  .ff-signin-prompt {
+    margin: 1.5rem 0;
+    padding: 1.2rem;
+  }
+
+  .ff-signin-prompt .ff-google-signin-btn {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+.ff-bold-red {
+  color: #FF4500;
+  font-weight: 900;
 }

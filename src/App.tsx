@@ -120,6 +120,8 @@ function App() {
     body: string;
   } | null>(null);
 
+  const [isEditingDM, setIsEditingDM] = useState(false);
+
   const [isSendingToLeads, setIsSendingToLeads] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
@@ -668,6 +670,14 @@ function App() {
   };
 
   const handleWebsiteAnalysis = async () => {
+    // Track website analysis attempt
+    track('Website Analysis Attempt', {
+      product_name: fields.productName,
+      product_url: fields.productUrl,
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
+
     setIsAnalyzing(true);
     setAnalysisError(null);
     
@@ -729,6 +739,14 @@ function App() {
   };
 
   const handleSendToLeads = async () => {
+    // Track send to leads attempt
+    track('Send to Leads Attempt', {
+      product_name: fields.productName,
+      total_leads: results.reduce((sum, result) => sum + (result.top_authors?.length || 0), 0),
+      user_id: getUserId(),
+      timestamp: new Date().toISOString()
+    });
+
     if (!editedDM) return;
     setShowPricingModal(true);
   };
@@ -775,12 +793,18 @@ function App() {
       <section className="ff-hero">
         <div className="ff-hero-content">
           <div className="ff-hero-text">
-            <h1>Automated Reddit ICP lead search & DMs for Founders</h1>
-            <p className="ff-hero-sub">Find and Reach Your Ideal Customers on Reddit—Effortlessly. Just tell us what your product does. We'll find high-fit users, relevant subreddits, and craft personalized DMs—powered by AI, Reddit tactics, and automation.</p>
+            <h1>Find & Private Message Your Ideal Customers on Reddit - <span className="ff-bold-red">Automatically</span></h1>
+            <p className="ff-hero-sub">Just give us your product url. We'll handle the rest:</p>
+            <ul className="ff-hero-features">
+              <li>🌐 Surface the right subreddits, worthy of your time investment</li>
+              <li>🎯 Find high-intent ICP users</li>
+              <li>✉️ Automate AI-personalized private messages on Reddit - hands-free</li>
+            </ul>
             <div className="ff-hero-cta">
               <button className="ff-cta-button" onClick={() => handleScrollToSection('reddit-dm-section')}>
-                Try it in seconds
+                Get My First Reddit Leads (Free)
               </button>              
+              <p className="ff-cta-note">Built for busy founders. See it in action before you commit.</p>
               <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
                 e.preventDefault();
                 handleScrollToSection('how-it-works');
@@ -958,14 +982,27 @@ function App() {
                     
                     const isExpanded = expandedSubreddits.includes(index);
                     const potentialCustomers = result.top_authors?.length || 0;
+                    const shouldBlur = !auth?.user && index >= 2;
+
+                    // Add sign-in button after first two subreddits
+                    if (index === 2 && !auth?.user) {
+                      return (
+                        <div key="signin-prompt" className="ff-signin-prompt">
+                          <button className="ff-google-signin-btn" onClick={() => auth?.signInWithGoogle()}>
+                            <img src="/google.svg" alt="Google" className="ff-google-icon" />
+                            Sign in with Google to view all subreddits
+                          </button>
+                        </div>
+                      );
+                    }
                     
                     return (
-                      <div key={index} className="ff-result-section">
+                      <div key={index} className={`ff-result-section ${shouldBlur ? 'ff-blurred-content' : ''}`}>
                         <div className={`ff-subreddit-card ${isExpanded ? 'expanded' : ''}`}>
                           <div 
                             className="ff-subreddit-header"
-                            onClick={() => toggleSubreddit(index)}
-                            style={{ cursor: 'pointer' }}
+                            onClick={() => !shouldBlur && toggleSubreddit(index)}
+                            style={{ cursor: shouldBlur ? 'not-allowed' : 'pointer' }}
                           >
                             <div className="ff-subreddit-header-content">
                               <h3>
@@ -979,14 +1016,16 @@ function App() {
                                 </span>
                               </div>
                             </div>
-                            <div className="ff-expand-icon">
-                              {isExpanded ? '−' : '+'}
-                            </div>
+                            {!shouldBlur && (
+                              <div className="ff-expand-icon">
+                                {isExpanded ? '−' : '+'}
+                              </div>
+                            )}
                           </div>
-                          {isExpanded && (
+                          {isExpanded && !shouldBlur && (
                             <>
                               <div className="ff-subreddit-content">
-                              <p className="ff-subscriber-count">
+                                <p className="ff-subscriber-count">
                                   {result.subscribers?.toLocaleString() || 'N/A'} subscribers
                                 </p>
                                 <p className="ff-subreddit-description">{result.description}</p>
@@ -1021,49 +1060,101 @@ function App() {
                   {/* Message Section */}
                   {results[results.length - 1]?.output && (
                     <div className="ff-dm-template">
-                      <h2>AI-generated Reddit DM template</h2>
-                      <p className="ff-section-description">We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.</p>
+                      <div className="ff-dm-header">
+                        <h2>AI-generated Reddit DM template</h2>
+                      </div>
+                      <p className="ff-section-description">
+                        We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.                        
+                      </p>
                       <div className="ff-dm-content">
-                        <div className="ff-dm-field">
-                          <label htmlFor="dm-subject">Subject</label>
-                          <textarea
-                            id="dm-subject"
-                            value={editedDM?.subject || ''}
-                            onChange={(e) => handleDMChange('subject', e.target.value)}
-                            className="ff-dm-input"
-                            rows={2}
-                            placeholder="Enter DM subject"
-                          />
-                        </div>
-                        <div className="ff-dm-field">
-                          <label htmlFor="dm-body">Message</label>
-                          <textarea
-                            id="dm-body"
-                            value={editedDM?.body || ''}
-                            onChange={(e) => handleDMChange('body', e.target.value)}
-                            className="ff-dm-input"
-                            rows={8}
-                            placeholder="Enter DM message"
-                          />
-                        </div>
-                        <div className="ff-dm-actions">
-                          <button
-                            className="ff-action-btn send-leads-btn"
-                            onClick={handleSendToLeads}
-                            disabled={isSendingToLeads || !editedDM}
-                          >
-                            {isSendingToLeads ? (
-                              <>
-                                <ClipLoader size={20} color="#ffffff" />
-                                <span>Sending...</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="ff-action-icon">📨</span>
-                                Send to {results.reduce((sum, result) => sum + (result.top_authors?.length || 0), 0)} leads
-                              </>
+                        {isEditingDM ? (
+                          <>
+                            <div className="ff-dm-field">
+                              <div className="ff-dm-field-header">
+                                <label htmlFor="dm-subject">Subject</label>
+                              </div>
+                              <textarea
+                                id="dm-subject"
+                                value={editedDM?.subject || ''}
+                                onChange={(e) => handleDMChange('subject', e.target.value)}
+                                className="ff-dm-input"
+                                rows={2}
+                                placeholder="Enter DM subject"
+                              />
+                            </div>
+                            <div className="ff-dm-field">
+                              <div className="ff-dm-field-header">
+                                <label htmlFor="dm-body">Message</label>
+                              </div>
+                              <textarea
+                                id="dm-body"
+                                value={editedDM?.body || ''}
+                                onChange={(e) => handleDMChange('body', e.target.value)}
+                                className="ff-dm-input"
+                                rows={8}
+                                placeholder="Enter DM message"
+                              />
+                            </div>
+                          </>
+                        ) : (
+                          <div className={`ff-dm-preview ${!auth?.user ? 'ff-blurred-content' : ''}`}>
+                            <div className="ff-dm-preview-subject">
+                              <div className="ff-dm-field-header">
+                                <h4>Subject</h4>
+                              </div>
+                              <p>{editedDM?.subject}</p>
+                            </div>
+                            <div className="ff-dm-preview-body">
+                              <div className="ff-dm-field-header">
+                                <h4>Message</h4>
+                              </div>
+                              <p>
+                                {auth?.user 
+                                  ? editedDM?.body 
+                                  : editedDM?.body?.split('\n').slice(0, 3).join('\n')}
+                              </p>
+                            </div>
+                            {!auth?.user && (
+                              <div className="ff-blurred-overlay">
+                                <div className="ff-blurred-message">
+                                  <h3>Sign in to view full message</h3>
+                                  <button className="ff-google-signin-btn" onClick={() => auth?.signInWithGoogle()}>
+                                    <img src="/google.svg" alt="Google" className="ff-google-icon" />
+                                    Sign in with Google
+                                  </button>
+                                </div>
+                              </div>
                             )}
-                          </button>
+                          </div>
+                        )}
+                        <div className="ff-dm-actions">
+                          {auth?.user ? (
+                            <button
+                              className="ff-action-btn send-leads-btn"
+                              onClick={handleSendToLeads}
+                              disabled={isSendingToLeads || !editedDM}
+                            >
+                              {isSendingToLeads ? (
+                                <>
+                                  <ClipLoader size={20} color="#ffffff" />
+                                  <span>Sending...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="ff-action-icon">📨</span>
+                                  Send to {results.reduce((sum, result) => sum + (result.top_authors?.length || 0), 0)} leads
+                                </>
+                              )}
+                            </button>
+                          ) : (
+                            <button
+                              className="ff-action-btn send-leads-btn"
+                              onClick={() => auth?.signInWithGoogle()}
+                            >
+                              <span className="ff-action-icon">🔒</span>
+                              Sign in to send messages
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1123,6 +1214,12 @@ function App() {
               <button
                 className="ff-action-btn schedule-btn"
                 onClick={() => {
+                  // Track schedule DMs attempt
+                  track('Schedule DMs Attempt', {
+                    product_name: fields.productName,
+                    user_id: getUserId(),
+                    timestamp: new Date().toISOString()
+                  });
                   // Handle scheduling logic
                   setShowScheduleModal(false);
                 }}
@@ -1132,7 +1229,15 @@ function App() {
               </button>
               <button
                 className="ff-action-btn cancel-btn"
-                onClick={() => setShowScheduleModal(false)}
+                onClick={() => {
+                  // Track schedule DMs cancellation
+                  track('Schedule DMs Cancelled', {
+                    product_name: fields.productName,
+                    user_id: getUserId(),
+                    timestamp: new Date().toISOString()
+                  });
+                  setShowScheduleModal(false);
+                }}
               >
                 Not Now
               </button>
@@ -1177,6 +1282,14 @@ function App() {
               <button 
                 className="ff-action-btn subscribe-btn"
                 onClick={() => {
+                  // Track subscription attempt
+                  track('Subscription Attempt', {
+                    product_name: fields.productName,
+                    plan: 'monthly',
+                    price: 9.99,
+                    user_id: getUserId(),
+                    timestamp: new Date().toISOString()
+                  });
                   // Handle subscription logic
                   setShowPricingModal(false);
                 }}
