@@ -105,31 +105,22 @@
   padding: 2.5rem 2rem 2rem 2rem;
 }
 .ff-hero-content {
-  display: flex;
-  width: 100%;
-  gap: 2.5rem;
-  align-items: center;
-  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
   text-align: center;
 }
 .ff-hero-text {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
   max-width: 800px;
   margin: 0 auto;
-}
-.ff-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 0.5rem;
+  text-align: center;
 }
 .ff-hero-text h1 {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 800;
   line-height: 1.2;
-  margin: 0;
+  margin-bottom: 1.5rem;
+  color: #1e293b;
   text-align: center;
 }
 .ff-hero-subtitle {
@@ -139,26 +130,24 @@
   margin: 0.5rem 0 1rem 0;
 }
 .ff-hero-sub {
-  color: #64748b;
-  font-size: 1.1rem;
-  margin: 1rem 0;
+  font-size: 1.2rem;
+  color: #475569;
+  margin-bottom: 1.5rem;
   text-align: center;
 }
 .ff-hero-features {
   list-style: none;
   padding: 0;
-  margin: 1.5rem 0;
-  text-align: left;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0 0 2rem 0;
+  text-align: center;
 }
 .ff-hero-features li {
-  color: #1e293b;
   font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 0.8rem;
-  padding-left: 0.5rem;
+  color: #475569;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 .ff-hero-features li:last-child {
   margin-bottom: 0;
@@ -384,7 +373,7 @@
     border-radius: 1.2rem;
   }
   .ff-hero-text h1 {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
   .ff-hero-content {
     flex-direction: column;
@@ -414,15 +403,10 @@
     padding: 0.8rem 0;
   }
   .ff-hero-sub {
-    font-size: 1rem;
-    margin: 0.8rem 0;
-  }
-  .ff-hero-features {
-    margin: 1.2rem 0;
+    font-size: 1.1rem;
   }
   .ff-hero-features li {
     font-size: 1rem;
-    margin-bottom: 0.6rem;
   }
   .ff-cta-note {
     font-size: 0.9rem;
@@ -2114,4 +2098,26 @@
 .ff-bold-red {
   color: #FF4500;
   font-weight: 900;
+}
+
+@media (max-width: 768px) {
+  .ff-hero-content {
+    text-align: left;
+  }
+
+  .ff-hero-text {
+    text-align: left;
+  }
+
+  .ff-hero-text h1 {
+    text-align: left;
+  }
+
+  .ff-hero-sub {
+    text-align: left;
+  }
+
+  .ff-hero-features {
+    text-align: left;
+  }
 }

@@ -862,6 +862,26 @@ function App() {
                   />
                   <span className="ff-char-count" suppressHydrationWarning>{fields.productUrl.length}/100</span>
                 </div>
+                <div className="ff-form-group">
+                <label htmlFor="ask">Select your ask from the user *</label>
+                <div className="ff-input-wrap">
+                  <span className="ff-input-icon">🎯</span>
+                  <select
+                    id="ask"
+                    name="ask"
+                    value={fields.ask}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    className={touched.ask && !fields.ask ? 'invalid' : ''}
+                    required
+                  >
+                    <option value="">Select an option</option>
+                    <option value="Try the product and provide feedback">Try the product and provide feedback</option>
+                    <option value="Sign up for trial">Sign up for trial</option>
+                    <option value="Subscribe">Subscribe</option>
+                  </select>
+                </div>
+              </div>
                 <button 
                   type="button"
                   onClick={handleWebsiteAnalysis}
@@ -874,7 +894,7 @@ function App() {
                       <span style={{ marginLeft: '8px' }}>Analyzing...</span>
                     </>
                   ) : 'Get Website Analysis'}
-                </button>
+                </button>                
                 {analysisError && (
                   <div className="ff-error-message" style={{ marginTop: '1rem' }}>
                     {analysisError}
@@ -923,27 +943,6 @@ function App() {
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="ff-form-group">
-                <label htmlFor="ask">Select your ask from the user *</label>
-                <div className="ff-input-wrap">
-                  <span className="ff-input-icon">🎯</span>
-                  <select
-                    id="ask"
-                    name="ask"
-                    value={fields.ask}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    className={touched.ask && !fields.ask ? 'invalid' : ''}
-                    required
-                  >
-                    <option value="">Select an option</option>
-                    <option value="Try the product and provide feedback">Try the product and provide feedback</option>
-                    <option value="Sign up for trial">Sign up for trial</option>
-                    <option value="Subscribe">Subscribe</option>
-                  </select>
-                </div>
               </div>
             </div>
 
