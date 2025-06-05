@@ -875,7 +875,7 @@ function App() {
                     className={touched.ask && !fields.ask ? 'invalid' : ''}
                     required
                   >
-                    <option value="">Select an option</option>
+                    <option value="">Select the intent of outreach</option>
                     <option value="Try the product and provide feedback">Try the product and provide feedback</option>
                     <option value="Sign up for trial">Sign up for trial</option>
                     <option value="Subscribe">Subscribe</option>
@@ -893,7 +893,7 @@ function App() {
                       <ClipLoader size={20} color="#ffffff" />
                       <span style={{ marginLeft: '8px' }}>Analyzing...</span>
                     </>
-                  ) : 'Get Website Analysis'}
+                  ) : 'Summarize My Product/Business'}
                 </button>                
                 {analysisError && (
                   <div className="ff-error-message" style={{ marginTop: '1rem' }}>
@@ -902,17 +902,8 @@ function App() {
                 )}
                 {deliverablesResponse && (
                   <div className="ff-deliverables-response">
-                    <h4>Your Product Analysis</h4>
-                    <div className="ff-deliverables-grid">
-                      <div className="ff-deliverable-item">
-                        <h5>Product Name</h5>
-                        <textarea
-                          value={editedDeliverables?.product_name || ''}
-                          onChange={(e) => handleDeliverableChange('product_name', e.target.value)}
-                          className="ff-deliverable-input"
-                          rows={2}
-                        />
-                      </div>
+                    <h4>Review and Refine the analysis for {fields.productName}</h4>
+                    <div className="ff-deliverables-grid">                      
                       <div className="ff-deliverable-item">
                         <h5>Outcome</h5>
                         <textarea
@@ -920,7 +911,11 @@ function App() {
                           onChange={(e) => handleDeliverableChange('outcome', e.target.value)}
                           className="ff-deliverable-input"
                           rows={4}
+                          maxLength={80}
                         />
+                        <span className="ff-char-count" suppressHydrationWarning>
+                          {(editedDeliverables?.outcome?.length || 0)}/80
+                        </span>
                       </div>
                       <div className="ff-deliverable-item">
                         <h5>Offering</h5>
@@ -929,7 +924,11 @@ function App() {
                           onChange={(e) => handleDeliverableChange('offering', e.target.value)}
                           className="ff-deliverable-input"
                           rows={4}
+                          maxLength={80}
                         />
+                        <span className="ff-char-count" suppressHydrationWarning>
+                          {(editedDeliverables?.offering?.length || 0)}/80
+                        </span>
                       </div>
                       <div className="ff-deliverable-item">
                         <h5>Differentiator</h5>
@@ -938,7 +937,11 @@ function App() {
                           onChange={(e) => handleDeliverableChange('differentiator', e.target.value)}
                           className="ff-deliverable-input"
                           rows={4}
+                          maxLength={80}
                         />
+                        <span className="ff-char-count" suppressHydrationWarning>
+                          {(editedDeliverables?.differentiator?.length || 0)}/80
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -957,7 +960,7 @@ function App() {
                     <ClipLoader size={20} color="#ffffff" />
                     <span style={{ marginLeft: '8px' }}>Processing...</span>
                   </>
-                ) : submitted ? 'Submitted!' : 'Submit'}              
+                ) : submitted ? 'Submitted!' : 'Find Top Subreddits & Potential Customers'}              
               </button>
             )}
           </form>

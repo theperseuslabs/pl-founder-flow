@@ -65,6 +65,12 @@ export const Navbar = () => {
               Sign In
             </button>
           )}
+          <button
+              onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
+              className="ff-navbar-signin"
+            >
+              Contact Us
+            </button>
         </div>
       </div>
     </nav>
