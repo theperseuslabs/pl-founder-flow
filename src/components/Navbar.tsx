@@ -3,9 +3,14 @@
 import { useAuth } from '@/lib/firebase/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { PricingModal } from './PricingModal';
+import { ProfileDropdown } from './ProfileDropdown';
 
 export const Navbar = () => {
   const auth = useAuth();
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -18,10 +23,12 @@ export const Navbar = () => {
   const handleSignOut = async () => {
     try {
       await auth.logout();
+      setIsProfileDropdownOpen(false);
     } catch (error) {
       console.error('Sign out error:', error);
     }
   };
+
   return (
     <nav className="ff-navbar">
       <div className="ff-navbar-container">
@@ -36,11 +43,27 @@ export const Navbar = () => {
         </Link>
 
         <div className="ff-navbar-right">
+          <button
+            onClick={() => setIsPricingModalOpen(true)}
+            className="ff-navbar-pricing"
+          >
+            Pricing
+          </button>
+          <button
+            onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
+            className="ff-navbar-pricing"
+          >
+            Contact Us
+          </button>
           {auth.loading ? (
             <div className="ff-navbar-loading">Loading...</div>
           ) : auth.user ? (
-            <div className="ff-navbar-user">              
-              <div className="ff-navbar-user-info">
+            <div className="ff-navbar-user">
+              <div 
+                className="ff-navbar-user-info"
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                style={{ cursor: 'pointer' }}
+              >
                 <img
                   src={auth.user.photoURL || '/default-avatar.png'}
                   alt={auth.user.displayName || 'User'}
@@ -50,12 +73,14 @@ export const Navbar = () => {
                   {auth.user.displayName || auth.user.email}
                 </span>
               </div>
-              <button
-                onClick={handleSignOut}
-                className="ff-navbar-signout"
-              >
-                Sign Out
-              </button>
+              <ProfileDropdown
+                isOpen={isProfileDropdownOpen}
+                onClose={() => setIsProfileDropdownOpen(false)}
+                userPhoto={auth.user.photoURL || '/default-avatar.png'}
+                userName={auth.user.displayName || auth.user.email || ''}
+                onSignOut={handleSignOut}
+                email={auth.user.email || ''}
+              />
             </div>
           ) : (
             <button
@@ -64,15 +89,13 @@ export const Navbar = () => {
             >
               Sign In
             </button>
-          )}
-          <button
-              onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
-              className="ff-navbar-signin"
-            >
-              Contact Us
-            </button>
+          )}          
         </div>
       </div>
+      <PricingModal 
+        isOpen={isPricingModalOpen} 
+        onClose={() => setIsPricingModalOpen(false)} 
+      />
     </nav>
   );
 }; 
