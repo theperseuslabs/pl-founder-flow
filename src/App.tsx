@@ -979,6 +979,7 @@ function App() {
                   {results.map((result, index) => {
                     // Skip the last element which contains the message
                     if (index === results.length - 1) return null;
+                    if (index === 0) return null;
                     
                     const isExpanded = expandedSubreddits.includes(index);
                     const potentialCustomers = result.top_authors?.length || 0;
