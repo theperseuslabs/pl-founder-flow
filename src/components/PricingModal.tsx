@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { createCheckoutSession, PRODUCT_IDS } from '@/lib/stripe/stripeService';
+import { useAuth } from '@/lib/firebase/AuthContext';
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -33,6 +35,35 @@ const features = [
 ];
 
 export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const auth = useAuth();
+
+  const handleCheckout = async (isAnnual: boolean) => {
+    try {
+      if (!auth.user) {
+        // If user is not logged in, trigger sign in
+        await auth.signInWithGoogle();
+        return; // The component will re-render after sign in
+      }
+
+      if (!auth.user.email) {
+        throw new Error('User email is required');
+      }
+
+      setIsLoading(true);
+      await createCheckoutSession(
+        isAnnual ? PRODUCT_IDS.ANNUAL : PRODUCT_IDS.MONTHLY,
+        isAnnual,
+        auth.user.email
+      );
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -61,7 +92,13 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                   <div className="ff-feature-desc">Basic analytics dashboard</div>
                 </li>
               </ul>
-              <button className="ff-cta-button">Get Started</button>
+              <button 
+                className="ff-cta-button"
+                onClick={() => handleCheckout(false)}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Loading...' : auth.user ? 'Get Started' : 'Sign in to Subscribe'}
+              </button>
             </div>
             <div className="ff-pricing-card featured">
               <h3>Professional</h3>
@@ -88,7 +125,13 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                   <div className="ff-feature-desc">{features[4].description}</div>
                 </li>
               </ul>
-              <button className="ff-cta-button">Get Started</button>
+              <button 
+                className="ff-cta-button"
+                onClick={() => handleCheckout(true)}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Loading...' : auth.user ? 'Get Started' : 'Sign in to Subscribe'}
+              </button>
             </div>
             <div className="ff-pricing-card">
               <h3>Enterprise</h3>
@@ -109,7 +152,12 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                   <div className="ff-feature-desc">Personal support and strategy guidance</div>
                 </li>
               </ul>
-              <button className="ff-cta-button">Contact Sales</button>
+              <button 
+                className="ff-cta-button"
+                onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
+              >
+                Contact Sales
+              </button>
             </div>
           </div>
         </div>

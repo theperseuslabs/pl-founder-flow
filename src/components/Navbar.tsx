@@ -3,14 +3,27 @@
 import { useAuth } from '@/lib/firebase/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PricingModal } from './PricingModal';
 import { ProfileDropdown } from './ProfileDropdown';
+import { checkSubscriptionStatus } from '@/lib/stripe/stripeService';
 
 export const Navbar = () => {
-  const auth = useAuth();
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const auth = useAuth();
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (auth.user?.email) {
+        const status = await checkSubscriptionStatus(auth.user.email);
+        setIsSubscribed(status);
+      }
+    };
+
+    checkSubscription();
+  }, [auth.user]);
 
   const handleSignIn = async () => {
     try {
@@ -40,9 +53,18 @@ export const Navbar = () => {
             height={40}
             priority
           /> */}
+          EMA
         </Link>
 
         <div className="ff-navbar-right">
+        {isSubscribed && (
+            <button
+              onClick={() => window.location.href = '/dashboard'}
+              className="ff-navbar-pricing"
+            >
+              Dashboard
+            </button>
+          )}
           <button
             onClick={() => setIsPricingModalOpen(true)}
             className="ff-navbar-pricing"
@@ -54,7 +76,7 @@ export const Navbar = () => {
             className="ff-navbar-pricing"
           >
             Contact Us
-          </button>
+          </button>          
           {auth.loading ? (
             <div className="ff-navbar-loading">Loading...</div>
           ) : auth.user ? (
