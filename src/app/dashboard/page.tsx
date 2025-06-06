@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/firebase/AuthContext';
+import { setCookie } from 'cookies-next';
 
 export default function Dashboard() {
   const auth = useAuth();
@@ -17,7 +18,10 @@ export default function Dashboard() {
     }
 
     const randomState = Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('reddit_oauth_state', randomState);
+    setCookie('reddit_oauth_state', randomState, {
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    });
 
     const scope = "identity privatemessages".replace(" ", ",");
     const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
