@@ -3,12 +3,43 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/firebase/AuthContext';
 import { setCookie } from 'cookies-next';
+import './dashboard.css';
+
+interface Project {
+  id: string;
+  productname: string;
+  url: string;
+  reddit_connected?: boolean;
+}
 
 export default function Dashboard() {
   const auth = useAuth();
   const [isRedditConnected, setIsRedditConnected] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleConnectToReddit = () => {
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/projects');
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        const data = await response.json();
+        setProjects(data.projects);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (auth?.user) {
+      fetchProjects();
+    }
+  }, [auth?.user]);
+
+  const handleConnectToReddit = (projectId: string) => {
     const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
     
@@ -23,6 +54,12 @@ export default function Dashboard() {
       path: '/',
     });
 
+    // Store the project ID in a cookie to handle the redirect
+    setCookie('project_id', projectId, {
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    });
+
     const scope = "identity privatemessages".replace(" ", ",");
     const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
     
@@ -31,28 +68,24 @@ export default function Dashboard() {
 
   if (!auth) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="loading-spinner">
+        <div></div>
       </div>
     );
   }
 
   if (!auth.user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Welcome to Reddit DM Scheduler
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Sign in to get started
-            </p>
-          </div>
-          <div className="mt-8">
+      <div className="dashboard-container">
+        <div className="dashboard-content">
+          <div className="dashboard-card">
+            <div className="section-header">
+              <h2 className="section-title">Welcome to Reddit DM Scheduler</h2>
+              <p className="text-gray-600">Sign in to get started</p>
+            </div>
             <button
               onClick={() => auth.signInWithGoogle()}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="reddit-connect-button"
             >
               Sign in with Google
             </button>
@@ -63,34 +96,53 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">
-                Signed in as {auth.user.email}
-              </span>
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        <div className="dashboard-card">
+          <div className="section-header">
+            <h1 className="section-title">Dashboard</h1>
+            <div className="user-info">
+              <span>Signed in as {auth.user.email}</span>
             </div>
           </div>
+        </div>
 
-          <div className="border-t border-gray-200 pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-medium text-gray-900">Reddit Integration</h2>
-                <p className="mt-1 text-sm text-gray-500">
-                  Connect your Reddit account to schedule automated DMs
-                </p>
-              </div>
-              <button
-                onClick={handleConnectToReddit}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-              >
-                {isRedditConnected ? 'Reconnect Reddit Account' : 'Connect Reddit Account'}
-              </button>
+        <div className="dashboard-card">
+          <h2 className="section-title">Your Projects</h2>
+          
+          {loading ? (
+            <div className="loading-spinner">
+              <div></div>
             </div>
-          </div>
+          ) : projects.length === 0 ? (
+            <div className="empty-state">
+              <p>No projects found. Create your first project to get started.</p>
+            </div>
+          ) : (
+            <div className="project-grid">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="project-card"
+                >
+                  <h3>{project.productname}</h3>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {project.url}
+                  </a>
+                  <button
+                    onClick={() => handleConnectToReddit(project.id)}
+                    className={`reddit-connect-button ${project.reddit_connected ? 'connected' : ''}`}
+                  >
+                    {project.reddit_connected ? 'Reconnect Reddit Account' : 'Connect Reddit Account'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -14,24 +14,19 @@ const pool = new Pool({
 
 export async function GET(request: Request) {
   try {
-    
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const error = searchParams.get('error');
     
-    // Verify state parameter to prevent CSRF
-    // const cookieStore = cookies();
-    // const storedState = cookieStore.get('reddit_oauth_state')?.value;
-    // if (!state || state !== storedState) {
-    //   return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 });
-    // }
-    
-    // Clear the state cookie after verification
-    // cookieStore.delete('reddit_oauth_state');
-    const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
-    const clientSecret = process.env.REDDIT_CLIENT_SECRET;
-    const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
+    // Get the project ID from cookie
+    const cookieStore = cookies();
+    const projectId = cookieStore.get('project_id')?.value;
+    const userId = cookieStore.get('user_id')?.value;
+
+    if (!projectId || !userId) {
+      return NextResponse.json({ error: 'Project ID or User ID not found' }, { status: 400 });
+    }
     
     if (error) {
       return NextResponse.json({ error }, { status: 400 });
@@ -40,6 +35,10 @@ export async function GET(request: Request) {
     if (!code) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
     }
+    
+    const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+    const clientSecret = process.env.REDDIT_CLIENT_SECRET;
+    const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
     
     const tokenUrl = 'https://www.reddit.com/api/v1/access_token';
     const authHeader = 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64');
@@ -54,7 +53,7 @@ export async function GET(request: Request) {
       headers: {
         'Authorization': authHeader,
         'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': `web:com.example.redditmessageconduit:v0.1.0 (by /u/VacationExpensive219)` // Replace
+        'User-Agent': `web:com.example.redditmessageconduit:v0.1.0 (by /u/VacationExpensive219)`
       },
       body: params.toString(),
     });
@@ -77,37 +76,62 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Failed to get Reddit user info' }, { status: 500 });
     }
 
-    // const redditUserData = await redditUserResponse.json();
+    const redditUserData = await redditUserResponse.json();
 
-    // // Get project_id from marketing_automations table
-    // const client = await pool.connect();
-    // try {
-    //   const projectResult = await client.query(
-    //     'SELECT id FROM marketing_automations WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
-    //     [currentUser.uid]
-    //   );
+    // Save Reddit auth info to PostgreSQL
+    const client = await pool.connect();
+    try {
+      // First, check if there's an existing auth record for this project
+      const existingAuth = await client.query(
+        'SELECT id FROM reddit_auth_info WHERE project_id = $1',
+        [projectId]
+      );
 
-    //   if (projectResult.rows.length === 0) {
-    //     return NextResponse.json({ error: 'No marketing automation project found' }, { status: 404 });
-    //   }
+      if (existingAuth.rows.length > 0) {
+        // Update existing record
+        await client.query(
+          `UPDATE reddit_auth_info 
+           SET reddit_username = $1, 
+               client_secret = $2, 
+               code = $3
+           WHERE project_id = $4`,
+          [
+            redditUserData.name,
+            tokenData.refresh_token,
+            code,
+            projectId
+          ]
+        );
+      } else {
+        // Insert new record with a smaller timestamp-based ID
+        const timestampId = Math.floor(Date.now() / 1000); // Convert to seconds instead of milliseconds
+        await client.query(
+          `INSERT INTO reddit_auth_info 
+           (id, project_id, reddit_username, client_secret, code, userid)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            timestampId,
+            projectId,
+            redditUserData.name,
+            tokenData.refresh_token,
+            code,
+            userId
+          ]
+        );
+      }
 
-    //   const projectId = projectResult.rows[0].id;
+      // Update the project's reddit_connected status
+      await client.query(
+        'UPDATE marketing_automations SET reddit_connected = true WHERE id = $1',
+        [projectId]
+      );
 
-    //   // Save Reddit auth info to PostgreSQL
-    //   await client.query(
-    //     `INSERT INTO reddit_auth_info (id, project_id, reddit_username, client_secret, code)
-    //      VALUES ($1, $2, $3, $4, $5)`,
-    //     [
-    //       Date.now(), // Using timestamp as ID
-    //       projectId,
-    //       redditUserData.name,
-    //       tokenData.refresh_token,
-    //       code
-    //     ]
-    //   );
-    // } finally {
-    //   client.release();
-    // }
+    } finally {
+      client.release();
+    }
+
+    // Clear the project_id cookie
+    cookieStore.delete('project_id');
 
     // Redirect to dashboard with success message
     return NextResponse.redirect(new URL('/dashboard?reddit_connected=true', request.url));

@@ -30,6 +30,7 @@ interface Output {
 }
 
 interface ApiResponse {
+  id?: string;
   display_name_prefixed?: string;
   title?: string;
   description?: string;
@@ -777,6 +778,37 @@ function App() {
       description: "Get help from our team whenever you need it"
     }
   ];
+
+  const updateUserIdInDatabase = async (id: string) => {
+    try {
+      const response = await fetch('/api/update-user-id', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user ID');
+      }
+
+      // Track successful user ID update
+      track('User ID Updated', {
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error updating user ID:', error);
+    }
+  };
+
+  // Add effect to handle user ID update when user logs in
+  useEffect(() => {
+    if (auth?.user && results.length > 0 && results[0]?.id) {
+      updateUserIdInDatabase(results[0].id);
+    }
+  }, [auth?.user, results]);
 
   return (
     <div className="ff-root">

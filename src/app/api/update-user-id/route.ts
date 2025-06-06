@@ -11,8 +11,14 @@ const pool = new Pool({
   port: 5432,
 });
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
+    const { id } = await request.json();
+    
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    }
+
     // Get the user ID from the cookie
     const cookieStore = cookies();
     const userId = cookieStore.get('user_id')?.value;
@@ -20,23 +26,23 @@ export async function GET(request: Request) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    console.log('userId', userId);
-    // Query the marketing_automations table for the user's projects
+
+    // Update the user ID in the database
     const client = await pool.connect();
     try {
-      const result = await client.query(
-        'SELECT * FROM marketing_automations WHERE userid = $1',
-        [userId]
+      await client.query(
+        'UPDATE marketing_automations SET userid = $1 WHERE id = $2',
+        [userId, id]
       );
 
-      return NextResponse.json({ projects: result.rows });
+      return NextResponse.json({ success: true });
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Error fetching projects:', error);
+    console.error('Error updating user ID:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch projects' },
+      { error: 'Failed to update user ID' },
       { status: 500 }
     );
   }
