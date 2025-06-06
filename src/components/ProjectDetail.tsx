@@ -1,0 +1,228 @@
+import React, { useState, useEffect } from 'react';
+import { ProjectDetails, SchedulerConfig, ProjectDetailProps } from '../types/project';
+import { Slider } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig } from '../utils/db';
+
+const Container = styled('div')({
+  padding: '24px',
+  maxWidth: '800px',
+  margin: '0 auto',
+});
+
+const Section = styled('div')({
+  marginBottom: '32px',
+  padding: '20px',
+  borderRadius: '8px',
+  backgroundColor: '#fff',
+  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+});
+
+const Title = styled('h2')({
+  marginBottom: '16px',
+  color: '#333',
+});
+
+const FormGroup = styled('div')({
+  marginBottom: '16px',
+});
+
+const Label = styled('label')({
+  display: 'block',
+  marginBottom: '8px',
+  fontWeight: '500',
+});
+
+const Input = styled('input')({
+  width: '100%',
+  padding: '8px',
+  borderRadius: '4px',
+  border: '1px solid #ddd',
+  marginBottom: '8px',
+});
+
+const TextArea = styled('textarea')({
+  width: '100%',
+  padding: '8px',
+  borderRadius: '4px',
+  border: '1px solid #ddd',
+  minHeight: '100px',
+  marginBottom: '8px',
+});
+
+const Select = styled('select')({
+  width: '100%',
+  padding: '8px',
+  borderRadius: '4px',
+  border: '1px solid #ddd',
+  marginBottom: '8px',
+});
+
+const Button = styled('button')({
+  backgroundColor: '#007bff',
+  color: 'white',
+  padding: '10px 20px',
+  border: 'none',
+  borderRadius: '4px',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: '#0056b3',
+  },
+});
+
+const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => {
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails>({
+    productname: '',
+    url: '',
+    elevatorpitch: '',
+    purpose: '',
+    response: '',
+  });
+
+  const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig>({
+    userid: '', // This should be set from your auth context
+    project_id: projectId,
+    dm_num: 1,
+    dm_frequency: 'daily',
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [projectData, schedulerData] = await Promise.all([
+          getProjectDetails(projectId),
+          getSchedulerConfig(projectId)
+        ]);
+
+        setProjectDetails(projectData);
+        if (schedulerData) {
+          setSchedulerConfig(schedulerData);
+        }
+      } catch (err) {
+        setError('Failed to load project data');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [projectId]);
+
+  const handleProjectDetailsChange = (field: keyof ProjectDetails, value: string) => {
+    setProjectDetails(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSchedulerConfigChange = (field: keyof SchedulerConfig, value: any) => {
+    setSchedulerConfig(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        saveProjectDetails(projectDetails, projectId),
+        saveSchedulerConfig(schedulerConfig)
+      ]);
+      onClose();
+    } catch (error) {
+      setError('Failed to save changes');
+      console.error('Error saving:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <Container>Loading...</Container>;
+  }
+
+  if (error) {
+    return <Container>Error: {error}</Container>;
+  }
+
+  return (
+    <Container>
+      <Section>
+        <Title>Product Details</Title>
+        <FormGroup>
+          <Label>Product Name</Label>
+          <Input
+            value={projectDetails.productname}
+            onChange={(e) => handleProjectDetailsChange('productname', e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>URL</Label>
+          <Input
+            value={projectDetails.url}
+            onChange={(e) => handleProjectDetailsChange('url', e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>Elevator Pitch</Label>
+          <TextArea
+            value={projectDetails.elevatorpitch}
+            onChange={(e) => handleProjectDetailsChange('elevatorpitch', e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>Purpose</Label>
+          <Input
+            value={projectDetails.purpose}
+            onChange={(e) => handleProjectDetailsChange('purpose', e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>Response</Label>
+          <TextArea
+            value={projectDetails.response}
+            onChange={(e) => handleProjectDetailsChange('response', e.target.value)}
+          />
+        </FormGroup>
+      </Section>
+
+      <Section>
+        <Title>Configure</Title>
+        <FormGroup>
+          <Label>Number of DMs</Label>
+          <Slider
+            value={schedulerConfig.dm_num}
+            onChange={(_, value) => handleSchedulerConfigChange('dm_num', value)}
+            min={1}
+            max={15}
+            marks
+            valueLabelDisplay="auto"
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>Frequency</Label>
+          <Select
+            value={schedulerConfig.dm_frequency}
+            onChange={(e) => handleSchedulerConfigChange('dm_frequency', e.target.value)}
+          >
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </Select>
+        </FormGroup>
+      </Section>
+
+      <Button onClick={handleSave} disabled={loading}>
+        {loading ? 'Saving...' : 'Save Changes'}
+      </Button>
+    </Container>
+  );
+};
+
+export default ProjectDetail; 

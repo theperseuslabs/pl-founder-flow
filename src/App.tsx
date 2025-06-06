@@ -30,6 +30,7 @@ interface Output {
 }
 
 interface ApiResponse {
+  id?: string;
   display_name_prefixed?: string;
   title?: string;
   description?: string;
@@ -778,6 +779,37 @@ function App() {
     }
   ];
 
+  const updateUserIdInDatabase = async (id: string) => {
+    try {
+      const response = await fetch('/api/update-user-id', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update user ID');
+      }
+
+      // Track successful user ID update
+      track('User ID Updated', {
+        user_id: getUserId(),
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error updating user ID:', error);
+    }
+  };
+
+  // Add effect to handle user ID update when user logs in
+  useEffect(() => {
+    if (auth?.user && results.length > 0 && results[0]?.id) {
+      updateUserIdInDatabase(results[0].id);
+    }
+  }, [auth?.user, results]);
+
   return (
     <div className="ff-root">
       <Clarity />
@@ -862,70 +894,7 @@ function App() {
                   />
                   <span className="ff-char-count" suppressHydrationWarning>{fields.productUrl.length}/100</span>
                 </div>
-                <button 
-                  type="button"
-                  onClick={handleWebsiteAnalysis}
-                  className="ff-input-btn"
-                  disabled={isAnalyzing}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" />
-                      <span style={{ marginLeft: '8px' }}>Analyzing...</span>
-                    </>
-                  ) : 'Get Website Analysis'}
-                </button>
-                {analysisError && (
-                  <div className="ff-error-message" style={{ marginTop: '1rem' }}>
-                    {analysisError}
-                  </div>
-                )}
-                {deliverablesResponse && (
-                  <div className="ff-deliverables-response">
-                    <h4>Your Product Analysis</h4>
-                    <div className="ff-deliverables-grid">
-                      <div className="ff-deliverable-item">
-                        <h5>Product Name</h5>
-                        <textarea
-                          value={editedDeliverables?.product_name || ''}
-                          onChange={(e) => handleDeliverableChange('product_name', e.target.value)}
-                          className="ff-deliverable-input"
-                          rows={2}
-                        />
-                      </div>
-                      <div className="ff-deliverable-item">
-                        <h5>Outcome</h5>
-                        <textarea
-                          value={editedDeliverables?.outcome || ''}
-                          onChange={(e) => handleDeliverableChange('outcome', e.target.value)}
-                          className="ff-deliverable-input"
-                          rows={4}
-                        />
-                      </div>
-                      <div className="ff-deliverable-item">
-                        <h5>Offering</h5>
-                        <textarea
-                          value={editedDeliverables?.offering || ''}
-                          onChange={(e) => handleDeliverableChange('offering', e.target.value)}
-                          className="ff-deliverable-input"
-                          rows={4}
-                        />
-                      </div>
-                      <div className="ff-deliverable-item">
-                        <h5>Differentiator</h5>
-                        <textarea
-                          value={editedDeliverables?.differentiator || ''}
-                          onChange={(e) => handleDeliverableChange('differentiator', e.target.value)}
-                          className="ff-deliverable-input"
-                          rows={4}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="ff-form-group">
+                <div className="ff-form-group">
                 <label htmlFor="ask">Select your ask from the user *</label>
                 <div className="ff-input-wrap">
                   <span className="ff-input-icon">🎯</span>
@@ -938,12 +907,77 @@ function App() {
                     className={touched.ask && !fields.ask ? 'invalid' : ''}
                     required
                   >
-                    <option value="">Select an option</option>
+                    <option value="">Select the intent of outreach</option>
                     <option value="Try the product and provide feedback">Try the product and provide feedback</option>
                     <option value="Sign up for trial">Sign up for trial</option>
                     <option value="Subscribe">Subscribe</option>
                   </select>
                 </div>
+              </div>
+                <button 
+                  type="button"
+                  onClick={handleWebsiteAnalysis}
+                  className="ff-input-btn"
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <ClipLoader size={20} color="#ffffff" />
+                      <span style={{ marginLeft: '8px' }}>Analyzing...</span>
+                    </>
+                  ) : 'Summarize My Product/Business'}
+                </button>                
+                {analysisError && (
+                  <div className="ff-error-message" style={{ marginTop: '1rem' }}>
+                    {analysisError}
+                  </div>
+                )}
+                {deliverablesResponse && (
+                  <div className="ff-deliverables-response">
+                    <h4>Review and Refine the analysis for {fields.productName}</h4>
+                    <div className="ff-deliverables-grid">                      
+                      <div className="ff-deliverable-item">
+                        <h5>Outcome</h5>
+                        <textarea
+                          value={editedDeliverables?.outcome || ''}
+                          onChange={(e) => handleDeliverableChange('outcome', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={4}
+                          maxLength={80}
+                        />
+                        <span className="ff-char-count" suppressHydrationWarning>
+                          {(editedDeliverables?.outcome?.length || 0)}/80
+                        </span>
+                      </div>
+                      <div className="ff-deliverable-item">
+                        <h5>Offering</h5>
+                        <textarea
+                          value={editedDeliverables?.offering || ''}
+                          onChange={(e) => handleDeliverableChange('offering', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={4}
+                          maxLength={80}
+                        />
+                        <span className="ff-char-count" suppressHydrationWarning>
+                          {(editedDeliverables?.offering?.length || 0)}/80
+                        </span>
+                      </div>
+                      <div className="ff-deliverable-item">
+                        <h5>Differentiator</h5>
+                        <textarea
+                          value={editedDeliverables?.differentiator || ''}
+                          onChange={(e) => handleDeliverableChange('differentiator', e.target.value)}
+                          className="ff-deliverable-input"
+                          rows={4}
+                          maxLength={80}
+                        />
+                        <span className="ff-char-count" suppressHydrationWarning>
+                          {(editedDeliverables?.differentiator?.length || 0)}/80
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -958,7 +992,7 @@ function App() {
                     <ClipLoader size={20} color="#ffffff" />
                     <span style={{ marginLeft: '8px' }}>Processing...</span>
                   </>
-                ) : submitted ? 'Submitted!' : 'Submit'}              
+                ) : submitted ? 'Submitted!' : 'Find Top Subreddits & Potential Customers'}              
               </button>
             )}
           </form>

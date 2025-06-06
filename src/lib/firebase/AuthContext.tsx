@@ -10,6 +10,7 @@ import {
   AuthError
 } from 'firebase/auth';
 import { auth } from './config';
+import { setCookie, deleteCookie } from 'cookies-next';
 
 interface AuthContextType {
   user: User | null;
@@ -58,6 +59,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setUser(user);
+      
+      // Set or remove user_id cookie based on auth state
+      if (user) {
+        setCookie('user_id', user.uid, {
+          maxAge: 30 * 24 * 60 * 60, // 30 days
+          path: '/',
+        });
+      } else {
+        deleteCookie('user_id');
+      }
+      
       setLoading(false);
     }, (error) => {
       console.error('Auth state change error:', error);
@@ -85,6 +97,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('Opening Google sign-in popup');
       const result = await signInWithPopup(auth, provider);
       console.log('Sign-in successful:', result.user.email);
+      
+      // Set user_id cookie after successful sign-in
+      setCookie('user_id', result.user.uid, {
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        path: '/',
+      });
     } catch (error) {
       const authError = error as AuthError;
       console.error('Sign-in error:', authError);
@@ -110,6 +128,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       await signOut(auth);
+      // Remove user_id cookie on logout
+      deleteCookie('user_id');
     } catch (error) {
       console.error('Logout error:', error);
       setError('Failed to sign out. Please try again.');
