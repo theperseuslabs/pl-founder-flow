@@ -6,6 +6,7 @@ import { track, identify, getUserId } from '@/utils/mixpanel';
 import Clarity from './components/Clarity';
 import { useAuth } from '@/lib/firebase/AuthContext';
 import { BlurredContent } from '@/components/BlurredContent';
+import { PricingModal } from './components/PricingModal';
 
 interface TopAuthor {
   author: string;
@@ -1282,7 +1283,11 @@ function App() {
       )}
 
       {/* Pricing Modal */}
-      {showPricingModal && (
+      <PricingModal 
+        isOpen={showPricingModal} 
+        onClose={() => setShowPricingModal(false)} 
+      />
+      {/* {showPricingModal && (
         <div className="ff-modal-overlay">
           <div className="ff-pricing-modal">
             <button 
@@ -1335,7 +1340,7 @@ function App() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
