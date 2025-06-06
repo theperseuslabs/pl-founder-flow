@@ -2,132 +2,35 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/firebase/AuthContext';
-import { useRouter } from 'next/navigation';
-import { Project } from '@/types/project';
-import { getProjects } from '@/utils/db';
-import { Button } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { setCookie } from 'cookies-next';
+import './dashboard.css';
+import ProjectDetail from '@/components/ProjectDetail';
 
-const Container = styled('div')({
-  padding: '24px',
-  maxWidth: '1200px',
-  margin: '0 auto',
-});
-
-const ProjectGrid = styled('div')({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-  gap: '24px',
-  marginTop: '24px',
-});
-
-const ProjectCard = styled('div')({
-  backgroundColor: '#fff',
-  borderRadius: '8px',
-  padding: '20px',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-  cursor: 'pointer',
-  transition: 'transform 0.2s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-  },
-});
-
-const ProjectTitle = styled('h3')({
-  margin: '0 0 12px 0',
-  color: '#333',
-});
-
-const ProjectDescription = styled('p')({
-  margin: '0 0 16px 0',
-  color: '#666',
-  fontSize: '14px',
-});
-
-const ProjectUrl = styled('a')({
-  color: '#007bff',
-  textDecoration: 'none',
-  fontSize: '14px',
-  '&:hover': {
-    textDecoration: 'underline',
-  },
-});
-
-const LoadingSpinner = styled('div')({
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  height: '200px',
-  '& > div': {
-    width: '40px',
-    height: '40px',
-    border: '4px solid #f3f3f3',
-    borderTop: '4px solid #007bff',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-  },
-  '@keyframes spin': {
-    '0%': { transform: 'rotate(0deg)' },
-    '100%': { transform: 'rotate(360deg)' },
-  },
-});
-
-const EmptyState = styled('div')({
-  textAlign: 'center',
-  padding: '48px',
-  backgroundColor: '#fff',
-  borderRadius: '8px',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-});
-
-const SectionHeader = styled('div')({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: '24px',
-  '& h1': {
-    fontSize: '24px',
-    fontWeight: '600',
-    color: '#333',
-    margin: 0,
-  },
-});
-
-const UserInfo = styled('div')({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '12px',
-});
-
-const UserAvatar = styled('div')({
-  width: '40px',
-  height: '40px',
-  borderRadius: '50%',
-  backgroundColor: '#007bff',
-  color: '#fff',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: '18px',
-  fontWeight: 'bold',
-});
+interface Project {
+  id: string;
+  productname: string;
+  url: string;
+  reddit_connected?: boolean;
+}
 
 export default function Dashboard() {
-  const router = useRouter();
   const auth = useAuth();
+  const [isRedditConnected, setIsRedditConnected] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setLoading(true);
-        const data = await getProjects();
-        setProjects(data);
-      } catch (err) {
-        setError('Failed to load projects');
-        console.error(err);
+        const response = await fetch('/api/projects');
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        const data = await response.json();
+        setProjects(data.projects);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
       } finally {
         setLoading(false);
       }
@@ -138,84 +41,126 @@ export default function Dashboard() {
     }
   }, [auth?.user]);
 
-  const handleProjectClick = (projectId: string) => {
-    router.push(`/dashboard/projects/${projectId}`);
+  const handleConnectToReddit = (projectId: string) => {
+    const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+    const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
+    
+    if (!clientId || !redirectUri) {
+      alert("Reddit API client ID or redirect URI is not configured. Please check environment variables.");
+      return;
+    }
+
+    const randomState = Math.random().toString(36).substring(2, 15);
+    setCookie('reddit_oauth_state', randomState, {
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    });
+
+    // Store the project ID in a cookie to handle the redirect
+    setCookie('project_id', projectId, {
+      maxAge: 60 * 10, // 10 minutes
+      path: '/',
+    });
+
+    const scope = "identity privatemessages".replace(" ", ",");
+    const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
+    
+    window.location.href = authUrl;
   };
 
-  if (!auth?.user) {
+  if (!auth) {
     return (
-      <Container>
-        <div>Please sign in to view your dashboard.</div>
-      </Container>
+      <div className="loading-spinner">
+        <div></div>
+      </div>
     );
   }
 
-  if (loading) {
+  if (!auth.user) {
     return (
-      <Container>
-        <LoadingSpinner>
-          <div></div>
-        </LoadingSpinner>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container>
-        <div>Error: {error}</div>
-      </Container>
+      <div className="dashboard-container">
+        <div className="dashboard-content">
+          <div className="dashboard-card">
+            <div className="section-header">
+              <h2 className="section-title">Welcome to Reddit DM Scheduler</h2>
+              <p className="text-gray-600">Sign in to get started</p>
+            </div>
+            <button
+              onClick={() => auth.signInWithGoogle()}
+              className="reddit-connect-button"
+            >
+              Sign in with Google
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container>
-      <SectionHeader>
-        <h1>My Projects</h1>
-        <UserInfo>
-          <UserAvatar>
-            {auth.user.email?.[0].toUpperCase()}
-          </UserAvatar>
-          <span>{auth.user.email}</span>
-        </UserInfo>
-      </SectionHeader>
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        <div className="dashboard-card">
+          <div className="section-header">
+            <h1 className="section-title">Dashboard</h1>
+            <div className="user-info">
+              <span>Signed in as {auth.user.email}</span>
+            </div>
+          </div>
+        </div>
 
-      {projects.length === 0 ? (
-        <EmptyState>
-          <h2>No projects yet</h2>
-          <p>Create your first project to get started</p>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => router.push('/dashboard/projects/new')}
-            sx={{ mt: 2 }}
-          >
-            Create Project
-          </Button>
-        </EmptyState>
-      ) : (
-        <ProjectGrid>
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              onClick={() => handleProjectClick(project.id)}
-            >
-              <ProjectTitle>{project.productname}</ProjectTitle>
-              <ProjectDescription>{project.elevatorpitch}</ProjectDescription>
-              {project.url && (
-                <ProjectUrl
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {project.url}
-                </ProjectUrl>
-              )}
-            </ProjectCard>
-          ))}
-        </ProjectGrid>
-      )}
-    </Container>
+        {selectedProjectId ? (
+          <div className="dashboard-card">
+            <ProjectDetail 
+              projectId={selectedProjectId} 
+              onClose={() => setSelectedProjectId(null)} 
+            />
+          </div>
+        ) : (
+          <div className="dashboard-card">
+            <h2 className="section-title">Your Projects</h2>
+            
+            {loading ? (
+              <div className="loading-spinner">
+                <div></div>
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="empty-state">
+                <p>No projects found. Create your first project to get started.</p>
+              </div>
+            ) : (
+              <div className="project-grid">
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className="project-card"
+                    onClick={() => setSelectedProjectId(project.id)}
+                  >
+                    <h3>{project.productname}</h3>
+                    <a
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {project.url}
+                    </a>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleConnectToReddit(project.id);
+                      }}
+                      className={`reddit-connect-button ${project.reddit_connected ? 'connected' : ''}`}
+                    >
+                      {project.reddit_connected ? 'Reconnect Reddit Account' : 'Connect Reddit Account'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 } 
