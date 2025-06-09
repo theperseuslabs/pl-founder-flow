@@ -65,12 +65,12 @@ export const Navbar = () => {
               Dashboard
             </button>
           )}
-          <button
+          {/* <button
             onClick={() => setIsPricingModalOpen(true)}
             className="ff-navbar-pricing"
           >
             Pricing
-          </button>
+          </button> */}
           <button
             onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
             className="ff-navbar-pricing"
