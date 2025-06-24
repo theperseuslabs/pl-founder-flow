@@ -92,11 +92,13 @@ export async function GET(request: Request) {
         await client.query(
           `UPDATE reddit_auth_info 
            SET reddit_username = $1, 
-               reddit_refresh_token = $2,
-               reddit_access_token = $3
+               code = $2
+               reddit_refresh_token = $3,
+               reddit_access_token = $4
            WHERE project_id = $4`,
           [
             redditUserData.name,
+            code,
             tokenData.refresh_token,
             tokenData.access_token,
             projectId
@@ -107,12 +109,13 @@ export async function GET(request: Request) {
         const timestampId = Math.floor(Date.now() / 1000); // Convert to seconds instead of milliseconds
         await client.query(
           `INSERT INTO reddit_auth_info 
-           (id, project_id, reddit_username, reddit_refresh_token, reddit_access_token, userid)
+           (id, project_id, reddit_username, code, reddit_refresh_token, reddit_access_token, userid)
            VALUES ($1, $2, $3, $4, $5, $6)`,
           [
             timestampId,
             projectId,
             redditUserData.name,
+            code,
             tokenData.refresh_token,
             tokenData.access_token,
             userId
