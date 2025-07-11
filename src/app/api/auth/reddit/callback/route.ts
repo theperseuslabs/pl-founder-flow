@@ -42,7 +42,6 @@ export async function GET(request: Request) {
     
     const tokenUrl = 'https://www.reddit.com/api/v1/access_token';
     const authHeader = 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64');
-
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
     params.append('code', code as string);
@@ -77,7 +76,6 @@ export async function GET(request: Request) {
     }
 
     const redditUserData = await redditUserResponse.json();
-
     // Save Reddit auth info to PostgreSQL
     const client = await pool.connect();
     try {
@@ -92,13 +90,17 @@ export async function GET(request: Request) {
         await client.query(
           `UPDATE reddit_auth_info 
            SET reddit_username = $1, 
-               client_secret = $2, 
-               code = $3
-           WHERE project_id = $4`,
+               code = $2,
+               reddit_refresh_token = $3,
+               reddit_access_token = $4,
+               reddit_token_expires_at = $5
+           WHERE project_id = $6`,
           [
             redditUserData.name,
-            tokenData.refresh_token,
             code,
+            tokenData.refresh_token,
+            tokenData.access_token,
+            Date.now() + tokenData.expires_in * 1000, // Store expiration time as a timestamp
             projectId
           ]
         );
@@ -107,14 +109,16 @@ export async function GET(request: Request) {
         const timestampId = Math.floor(Date.now() / 1000); // Convert to seconds instead of milliseconds
         await client.query(
           `INSERT INTO reddit_auth_info 
-           (id, project_id, reddit_username, client_secret, code, userid)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
+           (id, project_id, reddit_username, code, reddit_refresh_token, reddit_access_token, reddit_token_expires_at, userid)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
           [
             timestampId,
             projectId,
             redditUserData.name,
-            tokenData.refresh_token,
             code,
+            tokenData.refresh_token,
+            tokenData.access_token,
+            Date.now() + tokenData.expires_in * 1000, // Store expiration time as a timestamp
             userId
           ]
         );
