@@ -138,7 +138,8 @@ export async function GET(request: Request) {
     cookieStore.delete('project_id');
 
     // Redirect to dashboard with success message
-    return NextResponse.redirect(new URL('/dashboard?reddit_connected=true', request.url));
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    return NextResponse.redirect(`${baseUrl}/dashboard?reddit_connected=true`);
   } catch (error) {
     console.error('Reddit OAuth callback error:', error);
     return NextResponse.json(
