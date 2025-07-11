@@ -59,7 +59,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { productname, url, elevatorpitch, purpose, response } = body;
+    const { productname, url, elevatorpitch, purpose, subject, message_copy } = body;
 
     const client = await pool.connect();
     try {
@@ -80,10 +80,11 @@ export async function PUT(
              url = $2, 
              elevatorpitch = $3, 
              purpose = $4, 
-             response = $5
-         WHERE id = $6 AND userid = $7
+             subject = $5,
+             message_copy = $6
+         WHERE id = $7 AND userid = $8
          RETURNING *`,
-        [productname, url, elevatorpitch, purpose, response, params.id, userId]
+        [productname, url, elevatorpitch, purpose, subject, message_copy, params.id, userId]
       );
 
       return NextResponse.json(result.rows[0]);

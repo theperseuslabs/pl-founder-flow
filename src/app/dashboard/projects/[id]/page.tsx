@@ -98,7 +98,8 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     url: '',
     elevatorpitch: '',
     purpose: '',
-    response: '',
+    subject: '',
+    message_copy: '',
   });
 
   const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig>({
@@ -231,10 +232,17 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
           />
         </FormGroup>
         <FormGroup>
-          <Label>Response</Label>
+          <Label>Subject</Label>
+          <Input
+            value={projectDetails.subject}
+            onChange={(e) => handleProjectDetailsChange('subject', e.target.value)}
+          />
+        </FormGroup>
+        <FormGroup>
+          <Label>Message Copy</Label>
           <TextArea
-            value={projectDetails.response}
-            onChange={(e) => handleProjectDetailsChange('response', e.target.value)}
+            value={projectDetails.message_copy}
+            onChange={(e) => handleProjectDetailsChange('message_copy', e.target.value)}
           />
         </FormGroup>
       </Section>

@@ -3,7 +3,8 @@ export interface ProjectDetails {
   url: string;
   elevatorpitch: string;
   purpose: string;
-  response: string;
+  subject: string;
+  message_copy: string;
 }
 
 export interface SchedulerConfig {
@@ -25,6 +26,7 @@ export interface Project {
   url: string;
   elevatorpitch: string;
   purpose: string;
-  response: string;
+  subject: string;
+  message_copy: string;
   reddit_connected?: boolean;
 } 
