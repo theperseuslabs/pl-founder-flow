@@ -57,14 +57,14 @@ export const Navbar = () => {
         </Link>
 
         <div className="ff-navbar-right">
-        {isSubscribed && (
+        {/* {isSubscribed && ( */}
             <button
               onClick={() => window.location.href = '/dashboard'}
               className="ff-navbar-pricing"
             >
-              Dashboard
+              All Projects
             </button>
-          )}
+          {/* )} */}
           {/* <button
             onClick={() => setIsPricingModalOpen(true)}
             className="ff-navbar-pricing"

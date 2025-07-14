@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/firebase/AuthContext';
 import { setCookie } from 'cookies-next';
 import './dashboard.css';
 import ProjectDetail from '@/components/ProjectDetail';
+import { useRouter } from 'next/navigation';
 
 interface Project {
   id: string;
@@ -15,6 +16,7 @@ interface Project {
 
 export default function Dashboard() {
   const auth = useAuth();
+  const router = useRouter();
   const [isRedditConnected, setIsRedditConnected] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,65 +103,46 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-content">
         <div className="dashboard-card">
-          <div className="section-header">
-            <h1 className="section-title">Dashboard</h1>
-            <div className="user-info">
-              <span>Signed in as {auth.user.email}</span>
+          <h2 className="section-title">Your Projects</h2>
+          {loading ? (
+            <div className="loading-spinner">
+              <div></div>
             </div>
-          </div>
-        </div>
-
-        {selectedProjectId ? (
-          <div className="dashboard-card">
-            <ProjectDetail 
-              projectId={selectedProjectId} 
-              onClose={() => setSelectedProjectId(null)} 
-            />
-          </div>
-        ) : (
-          <div className="dashboard-card">
-            <h2 className="section-title">Your Projects</h2>
-            
-            {loading ? (
-              <div className="loading-spinner">
-                <div></div>
-              </div>
-            ) : projects.length === 0 ? (
-              <div className="empty-state">
-                <p>No projects found. Create your first project to get started.</p>
-              </div>
-            ) : (
-              <div className="project-grid">
-                {projects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="project-card"
-                    onClick={() => setSelectedProjectId(project.id)}
+          ) : projects.length === 0 ? (
+            <div className="empty-state">
+              <p>No projects found. Create your first project to get started.</p>
+            </div>
+          ) : (
+            <div className="project-grid">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="project-card"
+                  onClick={() => router.push(`/project/${project.id}`)}
+                >
+                  <h3>{project.productname}</h3>
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <h3>{project.productname}</h3>
-                    <a
-                      href={project.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {project.url}
-                    </a>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleConnectToReddit(project.id);
-                      }}
-                      className={`reddit-connect-button ${project.reddit_connected ? 'connected' : ''}`}
-                    >
-                      {project.reddit_connected ? 'Reconnect Reddit Account' : 'Connect Reddit Account'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                    {project.url}
+                  </a>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleConnectToReddit(project.id);
+                    }}
+                    className={`reddit-connect-button ${project.reddit_connected ? 'connected' : ''}`}
+                  >
+                    {project.reddit_connected ? 'Reconnect Reddit Account' : 'Connect Reddit Account'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
