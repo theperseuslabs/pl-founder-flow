@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ProjectDetails, SchedulerConfig, ProjectDetailProps } from '../types/project';
 import { Slider } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig } from '../utils/db';
+import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig, getSendHistory } from '../utils/db';
 
 const Container = styled('div')({
   padding: '24px',
@@ -89,6 +89,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sendHistory, setSendHistory] = useState<Array<{ to: string; status: string; created_date: string }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,6 +116,23 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     };
 
     fetchData();
+    setShowAllHistory(false); // Reset show more on project change
+  }, [projectId]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setHistoryLoading(true);
+        const history = await getSendHistory(projectId);
+        setSendHistory(history);
+      } catch (err) {
+        setHistoryError('Failed to load send history');
+        console.error(err);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+    fetchHistory();
   }, [projectId]);
 
   const handleProjectDetailsChange = (field: keyof ProjectDetails, value: string) => {
@@ -224,6 +245,48 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
             <option value="weekly">Weekly</option>
           </Select>
         </FormGroup>
+      </Section>
+
+      <Section>
+        <Title>Send History</Title>
+        {historyLoading ? (
+          <div>Loading...</div>
+        ) : historyError ? (
+          <div>Error: {historyError}</div>
+        ) : sendHistory.length === 0 ? (
+          <div>No send history found.</div>
+        ) : (
+          <>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '8px' }}>To</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '8px' }}>Status</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '8px' }}>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(showAllHistory ? sendHistory : sendHistory.slice(0, 10)).map((row, idx) => (
+                  <tr key={idx}>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>{row.to}</td>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>{row.status}</td>
+                    <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>{new Date(row.created_date).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {sendHistory.length > 10 && !showAllHistory && (
+              <button style={{ marginTop: '12px' }} onClick={() => setShowAllHistory(true)}>
+                Show More
+              </button>
+            )}
+            {showAllHistory && sendHistory.length > 10 && (
+              <button style={{ marginTop: '12px' }} onClick={() => setShowAllHistory(false)}>
+                Show Less
+              </button>
+            )}
+          </>
+        )}
       </Section>
 
       <Button onClick={handleSave} disabled={loading}>

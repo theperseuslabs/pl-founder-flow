@@ -72,6 +72,20 @@ export const getSchedulerConfig = async (projectId: string) => {
   }
 };
 
+export const getSendHistory = async (projectId: string) => {
+  try {
+    const response = await fetch(`/api/projects/${projectId}/send-history`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch send history');
+    }
+    const data = await response.json();
+    return data.history;
+  } catch (error) {
+    console.error('Error fetching send history:', error);
+    throw error;
+  }
+};
+
 export async function getProjects() {
   const response = await fetch('/api/projects');
   
