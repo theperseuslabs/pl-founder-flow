@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { project_id, dm_num, dm_frequency } = body;
+    const { project_id, dm_num, dm_frequency, is_enabled } = body;
 
     if (!project_id || !dm_num || !dm_frequency) {
       return NextResponse.json(
@@ -53,19 +53,20 @@ export async function POST(request: Request) {
         result = await client.query(
           `UPDATE ema_scheduler 
            SET dm_num = $1, 
-               dm_frequency = $2
-           WHERE project_id = $3
+               dm_frequency = $2, 
+               is_enabled = COALESCE($3, is_enabled)
+           WHERE project_id = $4
            RETURNING *`,
-          [dm_num, dm_frequency, project_id]
+          [dm_num, dm_frequency, is_enabled, project_id]
         );
       } else {
         // Insert new config
         result = await client.query(
           `INSERT INTO ema_scheduler 
-           (userid, project_id, dm_num, dm_frequency)
-           VALUES ($1, $2, $3, $4)
+           (userid, project_id, dm_num, dm_frequency, is_enabled)
+           VALUES ($1, $2, $3, $4, COALESCE($5, true))
            RETURNING *`,
-          [userId, project_id, dm_num, dm_frequency]
+          [userId, project_id, dm_num, dm_frequency, is_enabled]
         );
       }
 

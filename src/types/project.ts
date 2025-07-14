@@ -13,6 +13,7 @@ export interface SchedulerConfig {
   project_id: string;
   dm_num: number;
   dm_frequency: 'hourly' | 'daily' | 'weekly';
+  is_enabled?: boolean;
 }
 
 export interface ProjectDetailProps {

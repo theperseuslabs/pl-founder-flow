@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectDetails, SchedulerConfig, ProjectDetailProps } from '../types/project';
 import { Slider } from '@mui/material';
+import { Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig, getSendHistory } from '../utils/db';
 
@@ -85,6 +86,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     project_id: projectId,
     dm_num: 1,
     dm_frequency: 'daily',
+    is_enabled: true, // default true, will be set from API
   });
 
   const [loading, setLoading] = useState(true);
@@ -105,7 +107,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
 
         setProjectDetails(projectData);
         if (schedulerData) {
-          setSchedulerConfig(schedulerData);
+          setSchedulerConfig({ ...schedulerData, is_enabled: schedulerData.is_enabled ?? true });
         }
       } catch (err) {
         setError('Failed to load project data');
@@ -147,6 +149,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleEnableToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.checked;
+    setSchedulerConfig(prev => ({ ...prev, is_enabled: newValue }));
   };
 
   const handleSave = async () => {
@@ -224,6 +231,15 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
       <Section>
         <Title>Configure</Title>
         <FormGroup>
+          <Label>Enable</Label>
+          <Switch
+            checked={!!schedulerConfig.is_enabled}
+            onChange={handleEnableToggle}
+            color="primary"
+            inputProps={{ 'aria-label': 'Enable Scheduler' }}
+          />
+        </FormGroup>
+        <FormGroup>
           <Label>Number of DMs</Label>
           <Slider
             value={schedulerConfig.dm_num}
@@ -245,6 +261,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
             <option value="weekly">Weekly</option>
           </Select>
         </FormGroup>
+        <Button onClick={handleSave} disabled={loading}>
+          {loading ? 'Saving...' : 'Save Changes'}
+        </Button>
       </Section>
 
       <Section>
@@ -288,10 +307,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
           </>
         )}
       </Section>
-
-      <Button onClick={handleSave} disabled={loading}>
-        {loading ? 'Saving...' : 'Save Changes'}
-      </Button>
     </Container>
   );
 };
