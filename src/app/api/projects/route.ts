@@ -40,4 +40,37 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function POST(request: Request) {
+  try {
+    const cookieStore = cookies();
+    const userId = cookieStore.get('user_id')?.value;
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    const body = await request.json();
+    const { productname, url, elevatorpitch, purpose, subject, message_copy } = body;
+    if (!productname || !url) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        `INSERT INTO marketing_automations (userid, productname, url, elevatorpitch, purpose, subject, message_copy, reddit_connected)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, false)
+         RETURNING *`,
+        [userId, productname, url, elevatorpitch, purpose, subject, message_copy]
+      );
+      return NextResponse.json(result.rows[0], { status: 201 });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error creating project:', error);
+    return NextResponse.json(
+      { error: 'Failed to create project' },
+      { status: 500 }
+    );
+  }
 } 

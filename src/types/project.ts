@@ -1,4 +1,5 @@
 export interface ProjectDetails {
+  userid?: string;
   productname: string;
   url: string;
   elevatorpitch: string;

@@ -6,6 +6,9 @@ import { setCookie } from 'cookies-next';
 import './dashboard.css';
 import ProjectDetail from '@/components/ProjectDetail';
 import { useRouter } from 'next/navigation';
+import { createProject } from '@/utils/db';
+import { useRef } from 'react';
+import { RedditDMSection } from '@/components/RedditDMSection';
 
 interface Project {
   id: string;
@@ -21,6 +24,18 @@ export default function Dashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [newProject, setNewProject] = useState({
+    productname: '',
+    url: '',
+    elevatorpitch: '',
+    purpose: '',
+    subject: '',
+    message_copy: '',
+  });
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -70,6 +85,40 @@ export default function Dashboard() {
     window.location.href = authUrl;
   };
 
+  const handleRedditDMCreate = async (fields: any, results: any) => {
+    setCreating(true);
+    setCreateError(null);
+    try {
+      await createProject({
+        userid: auth?.user?.uid,
+        productname: fields.productName,
+        url: fields.productUrl,
+        elevatorpitch: fields.elevatorpitch,
+        purpose: fields.purpose,
+        subject: results[results.length-1]?.output?.subject || '',
+        message_copy: results[results.length-1]?.output?.body || '',
+      });
+      setShowAddModal(false);
+      setNewProject({
+        productname: '',
+        url: '',
+        elevatorpitch: '',
+        purpose: '',
+        subject: '',
+        message_copy: '',
+      });
+      // Refresh project list
+      setLoading(true);
+      const response = await fetch('/api/projects');
+      const data = await response.json();
+      setProjects(data.projects);
+    } catch (err: any) {
+      setCreateError(err.message || 'Failed to create project');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   if (!auth) {
     return (
       <div className="loading-spinner">
@@ -103,7 +152,33 @@ export default function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-content">
         <div className="dashboard-card">
-          <h2 className="section-title">Your Projects</h2>
+          <div className="section-header">
+            <h2 className="section-title">Your Projects</h2>
+            <button
+              className="reddit-connect-button"
+              style={{ marginLeft: 'auto' }}
+              onClick={() => setShowAddModal(true)}
+            >
+              + Add a project
+            </button>
+          </div>
+          {showAddModal && (
+            <div className="ff-modal-overlay" onClick={() => setShowAddModal(false)}>
+              <div className="ff-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
+                <div className="ff-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2>Add a Project</h2>
+                  <button className="ff-modal-close" onClick={() => setShowAddModal(false)}>&times;</button>
+                </div>
+                {createError && <div style={{ color: 'red', marginBottom: 8 }}>{createError}</div>}
+                <RedditDMSection
+                  initialFields={{}}
+                  mode="create"
+                  // onSubmit={handleRedditDMCreate}
+                  showResults={false}
+                />
+              </div>
+            </div>
+          )}
           {loading ? (
             <div className="loading-spinner">
               <div></div>
