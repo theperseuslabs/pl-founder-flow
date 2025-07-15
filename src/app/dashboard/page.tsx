@@ -15,6 +15,7 @@ interface Project {
   productname: string;
   url: string;
   reddit_connected?: boolean;
+  reddit_username?: string; // Add reddit_username to Project
 }
 
 export default function Dashboard() {
@@ -45,7 +46,20 @@ export default function Dashboard() {
           throw new Error('Failed to fetch projects');
         }
         const data = await response.json();
-        setProjects(data.projects);
+        // For each project, fetch reddit_username
+        const projectsWithUsernames = await Promise.all(
+          data.projects.map(async (project: Project) => {
+            try {
+              const res = await fetch(`/api/projects/reddit-auth?project_id=${project.id}`);
+              if (res.ok) {
+                const { reddit_username } = await res.json();
+                return { ...project, reddit_username };
+              }
+            } catch (e) {}
+            return { ...project, reddit_username: undefined };
+          })
+        );
+        setProjects(projectsWithUsernames);
       } catch (error) {
         console.error('Error fetching projects:', error);
       } finally {
@@ -204,6 +218,12 @@ export default function Dashboard() {
                   >
                     {project.url}
                   </a>
+                  {/* Show Reddit username if available */}
+                  {project.reddit_username && (
+                    <div style={{ margin: '8px 0', color: 'gray', fontWeight: 500 }}>
+                      Sending as: u/{project.reddit_username}
+                    </div>
+                  )}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
