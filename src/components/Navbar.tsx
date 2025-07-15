@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { PricingModal } from './PricingModal';
 import { ProfileDropdown } from './ProfileDropdown';
 import { checkSubscriptionStatus } from '@/lib/stripe/stripeService';
+import { Button } from './ui/Button';
 
 export const Navbar = () => {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
@@ -43,58 +44,50 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="ff-navbar">
-      <div className="ff-navbar-container">
-        <Link href="/" className="ff-navbar-logo">
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
           {/* <Image
             src="/logo.png"
             alt="Easy Marketing Automation"
-            width={150}
+            width={40}
             height={40}
             priority
           /> */}
-          EMA
+          <span className="text-lg font-bold">EMA</span>
         </Link>
 
-        <div className="ff-navbar-right">
-        {/* {isSubscribed && ( */}
-            <button
-              onClick={() => window.location.href = '/dashboard'}
-              className="ff-navbar-pricing"
-            >
-              All Projects
-            </button>
-          {/* )} */}
-          {/* <button
-            onClick={() => setIsPricingModalOpen(true)}
-            className="ff-navbar-pricing"
-          >
+        <div className="flex items-center gap-4">
+          {isSubscribed && (
+            <Button variant="ghost" asChild>
+              <Link href="/dashboard">All Projects</Link>
+            </Button>
+          )}
+          {/* <Button variant="ghost" onClick={() => setIsPricingModalOpen(true)}>
             Pricing
-          </button> */}
-          <button
-            onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
-            className="ff-navbar-pricing"
-          >
-            Contact Us
-          </button>          
+          </Button> */}
+          <Button variant="ghost" asChild>
+            <Link href="mailto:easymarketingautomations@gmail.com">
+              Contact Us
+            </Link>
+          </Button>
+
           {auth.loading ? (
-            <div className="ff-navbar-loading">Loading...</div>
+            <div className="text-sm text-gray-500">Loading...</div>
           ) : auth.user ? (
-            <div className="ff-navbar-user">
-              <div 
-                className="ff-navbar-user-info"
-                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                style={{ cursor: 'pointer' }}
-              >
+            <div
+              className="relative"
+              onMouseEnter={() => setIsProfileDropdownOpen(true)}
+              onMouseLeave={() => setIsProfileDropdownOpen(false)}
+            >
+              <Button variant="ghost" className="flex items-center gap-2">
                 <img
                   src={auth.user.photoURL || '/default-avatar.png'}
                   alt={auth.user.displayName || 'User'}
-                  className="ff-navbar-avatar"
+                  className="h-8 w-8 rounded-full"
                 />
-                <span className="ff-navbar-username">
-                  {auth.user.displayName || auth.user.email}
-                </span>
-              </div>
+                <span>{auth.user.displayName || auth.user.email}</span>
+              </Button>
               <ProfileDropdown
                 isOpen={isProfileDropdownOpen}
                 onClose={() => setIsProfileDropdownOpen(false)}
@@ -105,18 +98,13 @@ export const Navbar = () => {
               />
             </div>
           ) : (
-            <button
-              onClick={handleSignIn}
-              className="ff-navbar-signin"
-            >
-              Sign In
-            </button>
-          )}          
+            <Button onClick={handleSignIn}>Sign In</Button>
+          )}
         </div>
       </div>
-      <PricingModal 
-        isOpen={isPricingModalOpen} 
-        onClose={() => setIsPricingModalOpen(false)} 
+      <PricingModal
+        isOpen={isPricingModalOpen}
+        onClose={() => setIsPricingModalOpen(false)}
       />
     </nav>
   );

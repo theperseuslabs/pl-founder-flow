@@ -1,6 +1,15 @@
 import { useState } from 'react';
 import { createCheckoutSession, PRODUCT_IDS } from '@/lib/stripe/stripeService';
 import { useAuth } from '@/lib/firebase/AuthContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from './ui/Dialog';
+import { Button } from './ui/Button';
+import { motion } from 'framer-motion';
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -64,104 +73,88 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="ff-modal-overlay" onClick={onClose}>
-      <div className="ff-modal" onClick={e => e.stopPropagation()}>
-        <div className="ff-modal-header">
-          <h2>Pricing Plans</h2>
-          <button className="ff-modal-close" onClick={onClose}>×</button>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl">
+        <DialogHeader>
+          <DialogTitle className="text-3xl font-bold text-center">Pricing Plans</DialogTitle>
+          <DialogDescription className="text-center text-lg">
+            Choose the plan that's right for you.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="border rounded-lg p-6 flex flex-col"
+          >
+            <h3 className="text-2xl font-bold mb-4">Starter</h3>
+            <p className="text-4xl font-bold mb-4">$19.99<span className="text-lg font-normal">/month</span></p>
+            <ul className="space-y-4">
+              <li>{features[0].title}</li>
+              <li>{features[1].title}</li>
+              <li>Basic analytics dashboard</li>
+            </ul>
+            <Button
+              className="mt-auto"
+              onClick={() => handleCheckout(false)}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Loading...' : auth.user ? 'Get Started' : 'Sign in to Subscribe'}
+            </Button>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="border rounded-lg p-6 flex flex-col relative border-primary"
+          >
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-bl-lg">
+              Most Popular
+            </div>
+            <h3 className="text-2xl font-bold mb-4">Professional</h3>
+            <p className="text-4xl font-bold mb-4">$16.50<span className="text-lg font-normal">/month</span></p>
+            <p className="text-sm text-muted-foreground mb-4">(billed annually)</p>
+            <ul className="space-y-4">
+              <li>{features[0].title}</li>
+              <li>{features[1].title}</li>
+              <li>{features[2].title}</li>
+              <li>{features[3].title}</li>
+              <li>{features[4].title}</li>
+            </ul>
+            <Button
+              className="mt-auto"
+              onClick={() => handleCheckout(true)}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Loading...' : auth.user ? 'Get Started' : 'Sign in to Subscribe'}
+            </Button>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="border rounded-lg p-6 flex flex-col"
+          >
+            <h3 className="text-2xl font-bold mb-4">Enterprise</h3>
+            <p className="text-4xl font-bold mb-4">Custom</p>
+            <ul className="space-y-4">
+              {features.map((feature, index) => (
+                <li key={index}>{feature.title}</li>
+              ))}
+              <li>Custom Integrations</li>
+              <li>Dedicated Account Manager</li>
+            </ul>
+            <Button
+              className="mt-auto"
+              onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
+            >
+              Contact Sales
+            </Button>
+          </motion.div>
         </div>
-        <div className="ff-modal-content">
-          <div className="ff-pricing-grid">
-            <div className="ff-pricing-card">
-              <h3>Starter</h3>
-              <div className="ff-price">$19.99<span>/month</span></div>
-              <ul className="ff-features">
-                <li>
-                  <div className="ff-feature-title">{features[0].title}</div>
-                  <div className="ff-feature-desc">{features[0].description}</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">{features[1].title}</div>
-                  <div className="ff-feature-desc">{features[1].description}</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">{features[3].title}</div>
-                  <div className="ff-feature-desc">Basic analytics dashboard</div>
-                </li>
-              </ul>
-              <button 
-                className="ff-cta-button"
-                onClick={() => handleCheckout(false)}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Loading...' : auth.user ? 'Get Started' : 'Sign in to Subscribe'}
-              </button>
-            </div>
-            <div className="ff-pricing-card featured">
-              <h3>Professional</h3>
-              <div className="ff-price">$16.50<span>/month (billed annually)</span></div>
-              <ul className="ff-features">
-                <li>
-                  <div className="ff-feature-title">{features[0].title}</div>
-                  <div className="ff-feature-desc">{features[0].description}</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">{features[1].title}</div>
-                  <div className="ff-feature-desc">{features[1].description}</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">{features[2].title}</div>
-                  <div className="ff-feature-desc">{features[2].description}</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">{features[3].title}</div>
-                  <div className="ff-feature-desc">{features[3].description}</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">{features[4].title}</div>
-                  <div className="ff-feature-desc">{features[4].description}</div>
-                </li>
-              </ul>
-              <button 
-                className="ff-cta-button"
-                onClick={() => handleCheckout(true)}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Loading...' : auth.user ? 'Get Started' : 'Sign in to Subscribe'}
-              </button>
-            </div>
-            <div className="ff-pricing-card">
-              <h3>Enterprise</h3>
-              <div className="ff-price">Custom</div>
-              <ul className="ff-features">
-                {features.map((feature, index) => (
-                  <li key={index}>
-                    <div className="ff-feature-title">{feature.title}</div>
-                    <div className="ff-feature-desc">{feature.description}</div>
-                  </li>
-                ))}
-                <li>
-                  <div className="ff-feature-title">Custom Integrations</div>
-                  <div className="ff-feature-desc">Integrate with your existing tools and workflows</div>
-                </li>
-                <li>
-                  <div className="ff-feature-title">Dedicated Account Manager</div>
-                  <div className="ff-feature-desc">Personal support and strategy guidance</div>
-                </li>
-              </ul>
-              <button 
-                className="ff-cta-button"
-                onClick={() => window.location.href = 'mailto:easymarketingautomations@gmail.com'}
-              >
-                Contact Sales
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }; 

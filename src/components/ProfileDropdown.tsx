@@ -1,4 +1,12 @@
-import { useRef, useEffect } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/DropdownMenu';
+import { Button } from './ui/Button';
 
 interface ProfileDropdownProps {
   isOpen: boolean;
@@ -10,46 +18,33 @@ interface ProfileDropdownProps {
 }
 
 export const ProfileDropdown = ({ isOpen, onClose, userPhoto, userName, onSignOut, email }: ProfileDropdownProps) => {
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
   return (
-    <div className="ff-profile-dropdown" ref={dropdownRef}>
-      <div className="ff-profile-dropdown-header">
-        <img
-          src={userPhoto}
-          alt={userName}
-          className="ff-profile-dropdown-avatar"
-        />
-        <div className="ff-profile-dropdown-info">
-          <div className="ff-profile-dropdown-name">{userName}</div>
-          <div className="ff-profile-dropdown-email">{email}</div>
-        </div>
-      </div>
-      <div className="ff-profile-dropdown-divider"></div>
-      <button
-        onClick={onSignOut}
-        className="ff-profile-dropdown-item"
-      >
-        Sign Out
-      </button>
-    </div>
+    <DropdownMenu open={isOpen} onOpenChange={onClose}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <img
+            src={userPhoto}
+            alt={userName}
+            className="h-8 w-8 rounded-full"
+          />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{userName}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {email}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onSignOut}>
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }; 

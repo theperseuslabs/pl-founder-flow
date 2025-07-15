@@ -1,13 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { ClipLoader } from 'react-spinners';
-import { useAuth } from '@/lib/firebase/AuthContext';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/Form';
 import { track, getUserId } from '@/utils/mixpanel';
 import { useRouter } from 'next/navigation';
+import { ClipLoader } from 'react-spinners';
+import { useAuth } from '@/lib/firebase/AuthContext';
+
+const formSchema = z.object({
+  productName: z.string().min(1, 'Product name is required'),
+  productUrl: z.string().url('Please enter a valid URL'),
+  ask: z.string().min(1, 'This field is required'),
+});
 
 export interface RedditDMSectionProps {
   initialFields?: {
     productName?: string;
-    productUrl?: string;    
+    productUrl?: string;
     ask?: string;
   };
   mode?: 'create' | 'edit';
@@ -16,22 +37,10 @@ export interface RedditDMSectionProps {
 }
 
 export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => void, projectId?: string }> = ({ initialFields = {}, mode = 'create', onSubmit, showResults = true, onClose, projectId }) => {
-  const [fields, setFields] = useState({
-    productName: initialFields.productName || '',
-    productUrl: initialFields.productUrl || '',    
-    ask: initialFields.ask || '',
-  });
-  const [touched, setTouched] = useState({
-    productName: false,
-    productUrl: false,    
-    ask: false,
-  });
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFormValid, setIsFormValid] = useState(false);
   const [currentStep, setCurrentStep] = useState<number>(-1);
   const [deliverablesResponse, setDeliverablesResponse] = useState<any>(null);
   const [editedDeliverables, setEditedDeliverables] = useState<any>(null);
@@ -44,21 +53,22 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
   const auth = useAuth();
   const router = useRouter();
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      productName: initialFields.productName || '',
+      productUrl: initialFields.productUrl || '',
+      ask: initialFields.ask || '',
+    },
+  });
+
   const progressSteps = [
-    `Extracting additional keywords for ${fields.productName}`,
-    `Finding top subreddits for ${fields.productName}`,
-    `Finding top redditors for ${fields.productName}`,
-    `Composing reddit engagement DM for ${fields.productName}`,
+    `Extracting additional keywords for ${form.getValues().productName}`,
+    `Finding top subreddits for ${form.getValues().productName}`,
+    `Finding top redditors for ${form.getValues().productName}`,
+    `Composing reddit engagement DM for ${form.getValues().productName}`,
     'Packaging results...'
   ];
-
-  useEffect(() => {
-    setIsFormValid(
-      fields.productName.trim() !== '' &&
-      fields.productUrl.trim() !== '' &&
-      fields.ask.trim() !== ''
-    );
-  }, [fields]);
 
   useEffect(() => {
     const lastResult = results[results.length - 1];
@@ -71,7 +81,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
   }, [results]);
 
   useEffect(() => {
-    if (showResults === false && submitted) {
+    if (showResults === false && isSubmitting) {
       if (onClose) onClose();
       // If projectId is provided, go to that project's details page, else go to dashboard
       if (projectId) {
@@ -80,7 +90,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
         router.push('/dashboard');
       }
     }
-  }, [showResults, submitted]);
+  }, [showResults, isSubmitting]);
 
   const updateUserIdInDatabase = async (id: string) => {
     try {
@@ -96,7 +106,6 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
         throw new Error('Failed to update user ID');
       }
 
-      // Track successful user ID update
       track('User ID Updated', {
         user_id: getUserId(),
         timestamp: new Date().toISOString()
@@ -105,25 +114,15 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
       console.error('Error updating user ID:', error);
     }
   };
-   // Add effect to handle user ID update when user logs in
-   useEffect(() => {
+
+  useEffect(() => {
     if (auth?.user && results.length > 0 && results[0]?.id) {
       updateUserIdInDatabase(results[0].id);
       if(!showResults) {
-      router.push(`/project/${results[0].id}`);
+        router.push(`/project/${results[0].id}`);
       }
     }
-    
   }, [auth?.user, results]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFields((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setTouched({ ...touched, [e.target.name]: true });
-  };
 
   const handleDeliverableChange = (field: string, value: string) => {
     setEditedDeliverables((prev: any) => ({ ...prev, [field]: value }));
@@ -133,13 +132,13 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
     setIsAnalyzing(true);
     setAnalysisError(null);
     try {
-      const productUrl = fields.productUrl.startsWith('http') 
-        ? fields.productUrl 
-        : `https://${fields.productUrl}`;
+      const productUrl = form.getValues().productUrl.startsWith('http')
+        ? form.getValues().productUrl
+        : `https://${form.getValues().productUrl}`;
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/generate_elevatorPitch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prod_url: productUrl, prod_name: fields.productName })
+        body: JSON.stringify({ prod_url: productUrl, prod_name: form.getValues().productName })
       });
       if (!response.ok) throw new Error('Failed to generate deliverables');
       const data = await response.json();
@@ -152,18 +151,15 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isFormValid) return;
-    setSubmitted(true);
-    setLoading(true);
+  async function onFormSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+    setLoading(true);
     setError(null);
     setResults([]);
     setCurrentStep(0);
     track('Form Submission', {
-      product_name: fields.productName,
-      has_url: !!fields.productUrl,
+      product_name: values.productName,
+      has_url: !!values.productUrl,
       user_id: getUserId(),
       timestamp: new Date().toISOString()
     });
@@ -177,12 +173,12 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           output: {
-            product_name: editedDeliverables?.product_name || fields.productName,
+            product_name: editedDeliverables?.product_name || values.productName,
             outcome: editedDeliverables?.outcome || '',
             offering: editedDeliverables?.offering || '',
             differentiator: editedDeliverables?.differentiator || '',
-            prod_url: fields.productUrl,
-            cta: fields.ask
+            prod_url: values.productUrl,
+            cta: values.ask
           }
         })
       });
@@ -195,7 +191,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
         user_id: getUserId(),
         timestamp: new Date().toISOString()
       });
-      if (onSubmit) onSubmit(fields, data);
+      if (onSubmit) onSubmit(values, data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       track('Form Error', {
@@ -207,9 +203,8 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
       setLoading(false);
       setIsSubmitting(false);
       setCurrentStep(-1);
-      setTimeout(() => setSubmitted(false), 2500);
     }
-  };
+  }
 
   const toggleSubreddit = (index: number) => {
     setExpandedSubreddits(prev =>
@@ -226,8 +221,6 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
   const handleDMChange = (field: 'subject' | 'body', value: string) => {
     setEditedDM(prev => prev ? { ...prev, [field]: value } : null);
   };
-
-  // ... (other handlers like handleSendToLeads can be added as needed)
 
   const ProgressLoader = () => {
     if (currentStep === -1) return null;
@@ -251,339 +244,87 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
   };
 
   return (
-    <section className="ff-form-section">
-      <div className="ff-form-container">
-        <h2 className="ff-hero-subtitle">Try it out here in seconds</h2>
-        <form onSubmit={handleSubmit} className="ff-form">
-          <div className="ff-form-section">
-            <h3 className="ff-form-section-title">Your Product/Business Basic Info</h3>
-            <div className="ff-form-group">
-              <label htmlFor="productName">Business/Product Name *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">📦</span>
-                <input
-                  id="productName"
-                  name="productName"
-                  type="text"
-                  placeholder="Enter your business/product name"
-                  value={fields.productName}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={100}
-                  className={touched.productName && !fields.productName ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count" suppressHydrationWarning>{fields.productName.length}/100</span>
-              </div>
-            </div>
-            <div className="ff-form-group">
-              <label htmlFor="productUrl">Product/Website URL *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">🌐</span>
-                <input
-                  id="productUrl"
-                  name="productUrl"
-                  type="text"
-                  placeholder="Enter your product or website URL"
-                  value={fields.productUrl}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  maxLength={100}
-                  className={touched.productUrl && !fields.productUrl ? 'invalid' : ''}
-                  required
-                />
-                <span className="ff-char-count" suppressHydrationWarning>{fields.productUrl.length}/100</span>
-              </div>
-            </div>
-            <div className="ff-form-group">
-              <label htmlFor="ask">Intent of Outreach *</label>
-              <div className="ff-input-wrap">
-                <span className="ff-input-icon">🎯</span>
-                <select
-                  id="ask"
-                  name="ask"
-                  value={fields.ask}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  className={touched.ask && !fields.ask ? 'invalid' : ''}
-                  required
-                >
-                  <option value="">Select the intent of outreach</option>
-                  <option value="Try the product and provide feedback">Try the product and provide feedback</option>
-                  <option value="Sign up for trial">Sign up for trial</option>
-                  <option value="Subscribe">Subscribe</option>
-                </select>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleWebsiteAnalysis}
-              className="ff-input-btn"
-              disabled={isAnalyzing}
-            >
-              {isAnalyzing ? (
-                <>
-                  <ClipLoader size={20} color="#ffffff" />
-                  <span style={{ marginLeft: '8px' }}>Analyzing...</span>
-                </>
-              ) : 'Summarize My Product/Business'}
-            </button>
-            {analysisError && (
-              <div className="ff-error-message" style={{ marginTop: '1rem' }}>
-                {analysisError}
-              </div>
-            )}
-            {deliverablesResponse && (
-              <>
-                <div className="ff-deliverables-response">
-                  <h4>Review and Refine the analysis for {fields.productName}</h4>
-                  <div className="ff-deliverables-grid">
-                    <div className="ff-deliverable-item">
-                      <h5>Outcome</h5>
-                      <textarea
-                        value={editedDeliverables?.outcome || ''}
-                        onChange={(e) => handleDeliverableChange('outcome', e.target.value)}
-                        className="ff-deliverable-input"
-                        rows={4}
-                        maxLength={80}
-                      />
-                      <span className="ff-char-count" suppressHydrationWarning>
-                        {(editedDeliverables?.outcome?.length || 0)}/80
-                      </span>
-                    </div>
-                    <div className="ff-deliverable-item">
-                      <h5>Offering</h5>
-                      <textarea
-                        value={editedDeliverables?.offering || ''}
-                        onChange={(e) => handleDeliverableChange('offering', e.target.value)}
-                        className="ff-deliverable-input"
-                        rows={4}
-                        maxLength={80}
-                      />
-                      <span className="ff-char-count" suppressHydrationWarning>
-                        {(editedDeliverables?.offering?.length || 0)}/80
-                      </span>
-                    </div>
-                    <div className="ff-deliverable-item">
-                      <h5>Differentiator</h5>
-                      <textarea
-                        value={editedDeliverables?.differentiator || ''}
-                        onChange={(e) => handleDeliverableChange('differentiator', e.target.value)}
-                        className="ff-deliverable-input"
-                        rows={4}
-                        maxLength={80}
-                      />
-                      <span className="ff-char-count" suppressHydrationWarning>
-                        {(editedDeliverables?.differentiator?.length || 0)}/80
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={!isFormValid || submitted || loading}
-                  className={`ff-submit-btn ${isFormValid ? 'active' : ''} ${isSubmitting ? 'loading' : ''}`}
-                  style={{ marginTop: '1.5rem', width: '100%' }}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <ClipLoader size={20} color="#ffffff" />
-                      <span style={{ marginLeft: '8px' }}>Processing...</span>
-                    </>
-                  ) : submitted ? 'Submitted!' : 'Find Top Subreddits & Potential Customers'}
-                </button>
-              </>
-            )}
-          </div>
-        </form>
-        {error && <div className="ff-error-message">{error}</div>}
-        {loading && <ProgressLoader />}
-        {showResults && results.length > 0 && (
-          <div>
-            <div className="ff-output-section">
-              <h2 className="ff-section-header">Top Subreddits</h2>
-              <div className="ff-results">
-                {results.map((result, index) => {
-                  if (index === results.length - 1) return null;
-                  if (index === 0) return null;
-                  const isExpanded = expandedSubreddits.includes(index);
-                  const potentialCustomers = result.top_authors?.length || 0;
-                  const shouldBlur = !auth?.user && index >= 2;
-                  if (index === 2 && !auth?.user) {
-                    return (
-                      <div key="signin-prompt" className="ff-signin-prompt">
-                        <button className="ff-google-signin-btn" onClick={() => auth?.signInWithGoogle()}>
-                          <img src="/google.svg" alt="Google" className="ff-google-icon" />
-                          Sign in with Google to view all subreddits
-                        </button>
-                      </div>
-                    );
-                  }
-                  return (
-                    <div key={index} className={`ff-result-section ${shouldBlur ? 'ff-blurred-content' : ''}`}>
-                      <div className={`ff-subreddit-card ${isExpanded ? 'expanded' : ''}`}>
-                        <div
-                          className="ff-subreddit-header"
-                          onClick={() => !shouldBlur && toggleSubreddit(index)}
-                          style={{ cursor: shouldBlur ? 'not-allowed' : 'pointer' }}
-                        >
-                          <div className="ff-subreddit-header-content">
-                            <h3>
-                              <a href={`https://reddit.com${result.display_name_prefixed}`} target="_blank" rel="noopener noreferrer">
-                                {result.display_name_prefixed}
-                              </a>
-                            </h3>
-                            <div className="ff-subreddit-stats">
-                              <span className="ff-potential-customers">
-                                Found {potentialCustomers} leads from recently active users
-                              </span>
-                            </div>
-                          </div>
-                          {!shouldBlur && (
-                            <div className="ff-expand-icon">
-                              {isExpanded ? '−' : '+'}
-                            </div>
-                          )}
-                        </div>
-                        {isExpanded && !shouldBlur && (
-                          <>
-                            <div className="ff-subreddit-content">
-                              <p className="ff-subscriber-count">
-                                {result.subscribers?.toLocaleString() || 'N/A'} subscribers
-                              </p>
-                              <p className="ff-subreddit-description">{result.description}</p>
-                            </div>
-                            {result.top_authors && result.top_authors.length > 0 && (
-                              <div className="ff-top-authors">
-                                <h4>Top Users</h4>
-                                <ul className="ff-authors-list">
-                                  {result.top_authors.map((author: any, idx: number) => (
-                                    <li key={idx} className="ff-author-item">
-                                      <div className="ff-author-info">
-                                        <a href={author.profile_url} target="_blank" rel="noopener noreferrer" className="ff-author-handle">
-                                          {author.author.replace('t2_', '')}
-                                        </a>
-                                        <p className="ff-author-post-title">{author.top_post_title}</p>
-                                        <a href={author.url} target="_blank" rel="noopener noreferrer" className="ff-view-post-link">
-                                          View Post
-                                        </a>
-                                      </div>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                {/* Message Section */}
-                {results[results.length - 1]?.output && (
-                  <div className="ff-dm-template">
-                    <div className="ff-dm-header">
-                      <h2>AI-generated Reddit DM template</h2>
-                    </div>
-                    <p className="ff-section-description">
-                      We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.
-                    </p>
-                    <div className="ff-dm-content">
-                      {isEditingDM ? (
-                        <>
-                          <div className="ff-dm-field">
-                            <div className="ff-dm-field-header">
-                              <label htmlFor="dm-subject">Subject</label>
-                            </div>
-                            <textarea
-                              id="dm-subject"
-                              value={editedDM?.subject || ''}
-                              onChange={(e) => handleDMChange('subject', e.target.value)}
-                              className="ff-dm-input"
-                              rows={2}
-                              placeholder="Enter DM subject"
-                            />
-                          </div>
-                          <div className="ff-dm-field">
-                            <div className="ff-dm-field-header">
-                              <label htmlFor="dm-body">Message</label>
-                            </div>
-                            <textarea
-                              id="dm-body"
-                              value={editedDM?.body || ''}
-                              onChange={(e) => handleDMChange('body', e.target.value)}
-                              className="ff-dm-input"
-                              rows={8}
-                              placeholder="Enter DM message"
-                            />
-                          </div>
-                        </>
-                      ) : (
-                        <div className={`ff-dm-preview ${!auth?.user ? 'ff-blurred-content' : ''}`}>
-                          <div className="ff-dm-preview-subject">
-                            <div className="ff-dm-field-header">
-                              <h4>Subject</h4>
-                            </div>
-                            <p>{editedDM?.subject}</p>
-                          </div>
-                          <div className="ff-dm-preview-body">
-                            <div className="ff-dm-field-header">
-                              <h4>Message</h4>
-                            </div>
-                            <p>
-                              {auth?.user
-                                ? editedDM?.body
-                                : editedDM?.body?.split('\n').slice(0, 3).join('\n')}
-                            </p>
-                          </div>
-                          {!auth?.user && (
-                            <div className="ff-blurred-overlay">
-                              <div className="ff-blurred-message">
-                                <h3>Sign in to view full message</h3>
-                                <button className="ff-google-signin-btn" onClick={() => auth?.signInWithGoogle()}>
-                                  <img src="/google.svg" alt="Google" className="ff-google-icon" />
-                                  Sign in with Google
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <div className="ff-dm-actions">
-                          {auth?.user ? (
-                            <button
-                              className="ff-action-btn send-leads-btn"
-                              onClick={handleGoToDashboard}
-                            >
-                              {isSendingToLeads ? (
-                                <>
-                                  <ClipLoader size={20} color="#ffffff" />
-                                  <span>Sending...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="ff-action-icon">📨</span>
-                                  Send to {results.reduce((sum, result) => sum + (result.top_authors?.length || 0), 0)} leads
-                                </>
-                              )}
-                            </button>
-                          ) : (
-                            <button
-                              className="ff-action-btn send-leads-btn"
-                              onClick={() => auth?.signInWithGoogle()}
-                            >
-                              <span className="ff-action-icon">🔒</span>
-                              Sign in to send messages
-                            </button>
-                          )}
-                        </div>
-                    </div>
-                  </div>
+    <section className="py-12 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-8">
+            Get Your First Reddit Leads (Free)
+          </h2>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="productName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., EMA" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
+              />
+              <FormField
+                control={form.control}
+                name="productUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ask"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Intent of Outreach</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full p-2 border rounded">
+                        <option value="">Select the intent of outreach</option>
+                        <option value="Try the product and provide feedback">Try the product and provide feedback</option>
+                        <option value="Sign up for trial">Sign up for trial</option>
+                        <option value="Subscribe">Subscribe</option>
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="button"
+                onClick={handleWebsiteAnalysis}
+                disabled={isAnalyzing}
+              >
+                {isAnalyzing ? 'Analyzing...' : 'Summarize My Product/Business'}
+              </Button>
+              {analysisError && <p className="text-red-500 mt-4">{analysisError}</p>}
+              {deliverablesResponse && (
+                <>
+                  {/* ... render deliverables ... */}
+                  <Button type="submit" disabled={loading} className="w-full">
+                    {loading ? 'Generating...' : 'Get My Leads'}
+                  </Button>
+                </>
+              )}
+            </form>
+          </Form>
+
+          {error && <p className="text-red-500 mt-4">{error}</p>}
+          {loading && <ProgressLoader />}
+
+          {showResults && results.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-2xl font-bold mb-4">Results</h3>
+              {/* Render your results here */}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </section>
   );
