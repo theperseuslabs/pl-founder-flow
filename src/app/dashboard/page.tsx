@@ -208,7 +208,46 @@ export default function Dashboard() {
                   key={project.id}
                   className="project-card"
                   onClick={() => router.push(`/project/${project.id}`)}
+                  style={{ position: 'relative' }}
                 >
+                  {/* Delete Project Bin Icon */}
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                        try {
+                          const res = await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
+                          if (res.ok) {
+                            setProjects((prev) => prev.filter((p) => p.id !== project.id));
+                          } else {
+                            alert('Failed to delete project');
+                          }
+                        } catch (err) {
+                          alert('Failed to delete project');
+                        }
+                      }
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0,
+                      zIndex: 2,
+                    }}
+                    title="Delete Project"
+                  >
+                    {/* Simpler trash can SVG icon */}
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="7" y="3" width="6" height="2" rx="1" fill="#ff4500"/>
+                      <rect x="4" y="6" width="12" height="2" rx="1" fill="#ff4500"/>
+                      <rect x="5" y="8" width="10" height="8" rx="2" fill="#ff4500"/>
+                      <rect x="8" y="10" width="1.2" height="4" rx="0.6" fill="#fff"/>
+                      <rect x="10.8" y="10" width="1.2" height="4" rx="0.6" fill="#fff"/>
+                    </svg>
+                  </button>
                   <h3>{project.productname}</h3>
                   <a
                     href={project.url}
