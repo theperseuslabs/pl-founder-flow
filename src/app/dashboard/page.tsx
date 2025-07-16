@@ -177,7 +177,7 @@ export default function Dashboard() {
             </button>
           </div>
           {showAddModal && (
-            <div className="ff-modal-overlay" onClick={() => setShowAddModal(false)}>
+            <div className="ff-modal-overlay">
               <div className="ff-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
                 <div className="ff-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h2>Add a Project</h2>

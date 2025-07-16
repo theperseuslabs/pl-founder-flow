@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '../index.css'
+import '../App.css'
 import { AuthProvider } from '@/lib/firebase/AuthContext'
 import { Navbar } from '@/components/Navbar'
 
