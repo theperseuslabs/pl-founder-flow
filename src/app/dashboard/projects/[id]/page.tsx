@@ -114,6 +114,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
     purpose: '',
     subject: '',
     message_copy: '',
+    tool_subreddits: '',
   });
 
   const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig>({

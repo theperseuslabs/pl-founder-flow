@@ -6,6 +6,7 @@ export interface ProjectDetails {
   purpose: string;
   subject: string;
   message_copy: string;
+  tool_subreddits: string;
 }
 
 export interface SchedulerConfig {

@@ -92,6 +92,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     purpose: '',
     subject: '',
     message_copy: '',
+    tool_subreddits: '',
   });
 
   const [schedulerConfig, setSchedulerConfig] = useState<SchedulerConfig>({
@@ -111,6 +112,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [redditStatus, setRedditStatus] = useState<{ reddit_username: string | null }>({ reddit_username: null });
   const [redditLoading, setRedditLoading] = useState(false);
+  // Add state for top subreddits
+  const [topSubreddits, setTopSubreddits] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,6 +125,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
         ]);
 
         setProjectDetails(projectData);
+        setTopSubreddits(projectData.tool_subreddits.slice(1,-1).split(','));        
         if (schedulerData) {
           setSchedulerConfig({ ...schedulerData, is_enabled: schedulerData.is_enabled ?? true });
         }
@@ -141,6 +145,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     fetchData();
     setShowAllHistory(false); // Reset show more on project change
   }, [projectId]);
+
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -237,6 +242,27 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
                 inputProps={{ 'aria-label': 'Enable Scheduler' }}
               />
             </div>
+          </div>
+        )}
+      </Section>
+      {/* Top Subreddits Section */}
+      <Section style={{ marginBottom: 24 }}>
+        <Title>Top Subreddits</Title>
+        {loading ? (
+          <div>Loading subreddits...</div>
+        ) : error ? (
+          <div style={{ color: 'red' }}>{error}</div>
+        ) : topSubreddits.length === 0 ? (
+          <div>No subreddits found.</div>
+        ) : (
+          <div>
+            {topSubreddits.map((sub, idx) => (
+              <div key={idx} style={{ marginBottom: 16, padding: 12, border: '1px solid #eee', borderRadius: 6 }}>
+                <a href={`https://reddit.com/${sub}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, fontSize: 18 }}>
+                  {sub}
+                </a>
+              </div>
+            ))}
           </div>
         )}
       </Section>
