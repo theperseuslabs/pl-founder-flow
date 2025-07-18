@@ -99,40 +99,6 @@ export default function Dashboard() {
     window.location.href = authUrl;
   };
 
-  const handleRedditDMCreate = async (fields: any, results: any) => {
-    setCreating(true);
-    setCreateError(null);
-    try {
-      await createProject({
-        userid: auth?.user?.uid,
-        productname: fields.productName,
-        url: fields.productUrl,
-        elevatorpitch: fields.elevatorpitch,
-        purpose: fields.purpose,
-        subject: results[results.length-1]?.output?.subject || '',
-        message_copy: results[results.length-1]?.output?.body || '',
-      });
-      setShowAddModal(false);
-      setNewProject({
-        productname: '',
-        url: '',
-        elevatorpitch: '',
-        purpose: '',
-        subject: '',
-        message_copy: '',
-      });
-      // Refresh project list
-      setLoading(true);
-      const response = await fetch('/api/projects');
-      const data = await response.json();
-      setProjects(data.projects);
-    } catch (err: any) {
-      setCreateError(err.message || 'Failed to create project');
-    } finally {
-      setCreating(false);
-    }
-  };
-
   if (!auth) {
     return (
       <div className="loading-spinner">
