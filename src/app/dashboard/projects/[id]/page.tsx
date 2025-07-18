@@ -6,7 +6,21 @@ import { useRouter } from 'next/navigation';
 import { ProjectDetails, SchedulerConfig } from '@/types/project';
 import { Slider } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig } from '@/utils/db';
+import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig, getSendHistory } from '@/utils/db';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { Switch } from '@mui/material';
+
+// Add fetch for Reddit status
+const fetchRedditStatus = async (projectId: string) => {
+  try {
+    const response = await fetch(`/api/projects/reddit-auth?project_id=${projectId}`);
+    if (!response.ok) return { reddit_username: null };
+    return await response.json();
+  } catch {
+    return { reddit_username: null };
+  }
+};
 
 const Container = styled('div')({
   padding: '24px',
@@ -112,6 +126,12 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [redditStatus, setRedditStatus] = useState<{ reddit_username: string | null }>({ reddit_username: null });
+  const [redditLoading, setRedditLoading] = useState(false);
+  const [sendHistory, setSendHistory] = useState<Array<{ to: string; status: string; created_date: string }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,8 +146,20 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
         if (schedulerData) {
           setSchedulerConfig(schedulerData);
         }
+        setRedditLoading(true);
+        const reddit = await fetchRedditStatus(params.id);
+        setRedditStatus(reddit);
+        setRedditLoading(false);
+        // Fetch send history
+        setHistoryLoading(true);
+        const history = await getSendHistory(params.id);
+        setSendHistory(history);
+        setHistoryLoading(false);
       } catch (err) {
         setError('Failed to load project data');
+        setRedditLoading(false);
+        setHistoryError('Failed to load send history');
+        setHistoryLoading(false);
         console.error(err);
       } finally {
         setLoading(false);
@@ -160,14 +192,32 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
         saveProjectDetails(projectDetails, params.id),
         saveSchedulerConfig(schedulerConfig)
       ]);
-      router.push('/dashboard');
+      toast.success('Changes saved successfully!');
+      // router.push('/dashboard');
     } catch (error) {
-      setError('Failed to save changes');
+      toast.error('Failed to save changes');
       console.error('Error saving:', error);
     } finally {
       setSaving(false);
     }
   };
+
+  // Enable toggle handler
+  const handleEnableToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.target.checked;
+    setSchedulerConfig(prev => ({ ...prev, is_enabled: newValue }));
+    try {
+      await saveSchedulerConfig({ ...schedulerConfig, is_enabled: newValue });
+      toast.success(`Scheduler ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error('Failed to update scheduler status');
+    }
+  };
+
+  // Aggregate send history
+  const totalMessages = sendHistory.length;
+  const successfulMessages = sendHistory.filter(h => h.status === 'success').length;
+  const failedMessages = sendHistory.filter(h => h.status !== 'success').length;
 
   if (!auth?.user) {
     return (
@@ -197,10 +247,35 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
 
   return (
     <Container>
+      <ToastContainer position="top-center" autoClose={3000} />
       <BackButton onClick={() => router.push('/dashboard')}>
         ← Back to Dashboard
       </BackButton>
-
+      {/* Summary Section */}
+      <Section style={{ marginBottom: 24, background: '#f8fafc', border: '1px solid #e5e7eb' }}>
+        <Title>Summary</Title>
+        {historyLoading ? (
+          <div>Loading summary...</div>
+        ) : historyError ? (
+          <div style={{ color: 'red' }}>{historyError}</div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+            <div><b>Total Sent:</b> {totalMessages}</div>
+            <div><b>Successful:</b> {successfulMessages}</div>
+            <div><b>Failed:</b> {failedMessages}</div>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontWeight: 500 }}>Enable</span>
+              <Switch
+                checked={!!schedulerConfig.is_enabled}
+                onChange={handleEnableToggle}
+                color="primary"
+                inputProps={{ 'aria-label': 'Enable Scheduler' }}
+              />
+            </div>
+          </div>
+        )}
+      </Section>
+      {/* ... existing Product Details section ... */}
       <Section>
         <Title>Product Details</Title>
         <FormGroup>
@@ -246,7 +321,6 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
           />
         </FormGroup>
       </Section>
-
       <Section>
         <Title>Configure</Title>
         <FormGroup>
@@ -255,24 +329,17 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
             value={schedulerConfig.dm_num}
             onChange={(_, value) => handleSchedulerConfigChange('dm_num', value)}
             min={1}
-            max={15}
+            max={10}
             marks
             valueLabelDisplay="auto"
           />
         </FormGroup>
         <FormGroup>
           <Label>Frequency</Label>
-          <Select
-            value={schedulerConfig.dm_frequency}
-            onChange={(e) => handleSchedulerConfigChange('dm_frequency', e.target.value)}
-          >
-            <option value="hourly">Hourly</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-          </Select>
+          <div style={{ fontWeight: 500, padding: '8px 0' }}>Daily</div>
         </FormGroup>
       </Section>
-
+      {/* Success/Error message */}
       <Button onClick={handleSave} disabled={saving}>
         {saving ? 'Saving...' : 'Save Changes'}
       </Button>

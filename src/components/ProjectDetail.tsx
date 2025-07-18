@@ -4,6 +4,19 @@ import { Slider } from '@mui/material';
 import { Switch } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig, getSendHistory } from '../utils/db';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+// Add fetch for Reddit status
+const fetchRedditStatus = async (projectId: string) => {
+  try {
+    const response = await fetch(`/api/projects/reddit-auth?project_id=${projectId}`);
+    if (!response.ok) return { reddit_username: null };
+    return await response.json();
+  } catch {
+    return { reddit_username: null };
+  }
+};
 
 const Container = styled('div')({
   padding: '24px',
@@ -95,6 +108,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
   const [historyLoading, setHistoryLoading] = useState(true);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [redditStatus, setRedditStatus] = useState<{ reddit_username: string | null }>({ reddit_username: null });
+  const [redditLoading, setRedditLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,8 +125,13 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
         if (schedulerData) {
           setSchedulerConfig({ ...schedulerData, is_enabled: schedulerData.is_enabled ?? true });
         }
+        setRedditLoading(true);
+        const reddit = await fetchRedditStatus(projectId);
+        setRedditStatus(reddit);
+        setRedditLoading(false);
       } catch (err) {
         setError('Failed to load project data');
+        setRedditLoading(false);
         console.error(err);
       } finally {
         setLoading(false);
@@ -151,9 +172,15 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     }));
   };
 
-  const handleEnableToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEnableToggle = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.checked;
     setSchedulerConfig(prev => ({ ...prev, is_enabled: newValue }));
+    try {
+      await saveSchedulerConfig({ ...schedulerConfig, is_enabled: newValue });
+      toast.success(`Scheduler ${newValue ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error('Failed to update scheduler status');
+    }
   };
 
   const handleSave = async () => {
@@ -163,9 +190,10 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
         saveProjectDetails(projectDetails, projectId),
         saveSchedulerConfig(schedulerConfig)
       ]);
-      onClose();
+      toast.success('Changes saved successfully!');
+      // onClose();
     } catch (error) {
-      setError('Failed to save changes');
+      toast.error('Failed to save changes');
       console.error('Error saving:', error);
     } finally {
       setLoading(false);
@@ -180,8 +208,39 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     return <Container>Error: {error}</Container>;
   }
 
+  // Aggregate send history
+  const totalMessages = sendHistory.length;
+  const successfulMessages = sendHistory.filter(h => h.status === 'success').length;
+  const failedMessages = sendHistory.filter(h => h.status !== 'success').length;
+
   return (
     <Container>
+      <ToastContainer position="top-center" autoClose={3000} />
+      {/* Summary Section */}
+      <Section style={{ marginBottom: 24, background: '#f8fafc', border: '1px solid #e5e7eb' }}>
+        <Title>Summary</Title>
+        {historyLoading ? (
+          <div>Loading summary...</div>
+        ) : historyError ? (
+          <div style={{ color: 'red' }}>{historyError}</div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+            <div><b>Total Sent:</b> {totalMessages}</div>
+            <div><b>Successful:</b> {successfulMessages}</div>
+            <div><b>Failed:</b> {failedMessages}</div>
+            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontWeight: 500 }}>Enable</span>
+              <Switch
+                checked={!!schedulerConfig.is_enabled}
+                onChange={handleEnableToggle}
+                color="primary"
+                inputProps={{ 'aria-label': 'Enable Scheduler' }}
+              />
+            </div>
+          </div>
+        )}
+      </Section>
+      {/* ... existing Product Details section ... */}
       <Section>
         <Title>Product Details</Title>
         <FormGroup>
@@ -227,45 +286,75 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
           />
         </FormGroup>
       </Section>
-
       <Section>
         <Title>Configure</Title>
-        <FormGroup>
-          <Label>Enable</Label>
-          <Switch
-            checked={!!schedulerConfig.is_enabled}
-            onChange={handleEnableToggle}
-            color="primary"
-            inputProps={{ 'aria-label': 'Enable Scheduler' }}
-          />
-        </FormGroup>
         <FormGroup>
           <Label>Number of DMs</Label>
           <Slider
             value={schedulerConfig.dm_num}
             onChange={(_, value) => handleSchedulerConfigChange('dm_num', value)}
             min={1}
-            max={15}
+            max={10}
             marks
             valueLabelDisplay="auto"
           />
         </FormGroup>
-        <FormGroup>
-          <Label>Frequency</Label>
-          <Select
-            value={schedulerConfig.dm_frequency}
-            onChange={(e) => handleSchedulerConfigChange('dm_frequency', e.target.value)}
-          >
-            <option value="hourly">Hourly</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-          </Select>
-        </FormGroup>
+        {/* Success/Error message */}
         <Button onClick={handleSave} disabled={loading}>
           {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </Section>
-
+      {/* Reddit Button and Status */}
+      <Section>
+        <Title>Reddit Integration</Title>
+        {redditLoading ? (
+          <div>Loading Reddit status...</div>
+        ) : redditStatus.reddit_username ? (
+          <>
+            <div style={{ marginBottom: 8, color: 'gray', fontWeight: 500 }}>
+              Connected as: <b>u/{redditStatus.reddit_username}</b>
+            </div>
+            <button
+              style={{ background: '#ff4500', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer', marginBottom: 8 }}
+              onClick={() => {
+                // Reconnect logic: redirect to Reddit OAuth
+                const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+                const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
+                if (!clientId || !redirectUri) {
+                  alert('Reddit API client ID or redirect URI is not configured.');
+                  return;
+                }
+                const randomState = Math.random().toString(36).substring(2, 15);
+                document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
+                document.cookie = `project_id=${projectId}; max-age=600; path=/`;
+                const scope = 'identity privatemessages'.replace(' ', ',');
+                const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
+                window.location.href = authUrl;
+              }}
+            >Reconnect Reddit Account</button>
+          </>
+        ) : (
+          <button
+            style={{ background: '#ff4500', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer', marginBottom: 8 }}
+            onClick={() => {
+              // Connect logic: redirect to Reddit OAuth
+              const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+              const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
+              if (!clientId || !redirectUri) {
+                alert('Reddit API client ID or redirect URI is not configured.');
+                return;
+              }
+              const randomState = Math.random().toString(36).substring(2, 15);
+              document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
+              document.cookie = `project_id=${projectId}; max-age=600; path=/`;
+              const scope = 'identity privatemessages'.replace(' ', ',');
+              const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
+              window.location.href = authUrl;
+            }}
+          >Connect Reddit Account</button>
+        )}
+      </Section>
+      {/* ... existing Send History section ... */}
       <Section>
         <Title>Send History</Title>
         {historyLoading ? (
