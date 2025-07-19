@@ -6,6 +6,17 @@ import { styled } from '@mui/material/styles';
 import { saveProjectDetails, saveSchedulerConfig, getProjectDetails, getSchedulerConfig, getSendHistory } from '../utils/db';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '@/components/ui';
+import { 
+  ChartBarIcon, 
+  UserGroupIcon, 
+  PaperAirplaneIcon, 
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  CogIcon,
+  LinkIcon
+} from '@heroicons/react/24/outline';
 
 // Add fetch for Reddit status
 const fetchRedditStatus = async (projectId: string) => {
@@ -17,72 +28,6 @@ const fetchRedditStatus = async (projectId: string) => {
     return { reddit_username: null };
   }
 };
-
-const Container = styled('div')({
-  padding: '24px',
-  maxWidth: '800px',
-  margin: '0 auto',
-});
-
-const Section = styled('div')({
-  marginBottom: '32px',
-  padding: '20px',
-  borderRadius: '8px',
-  backgroundColor: '#fff',
-  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-});
-
-const Title = styled('h2')({
-  marginBottom: '16px',
-  color: '#333',
-});
-
-const FormGroup = styled('div')({
-  marginBottom: '16px',
-});
-
-const Label = styled('label')({
-  display: 'block',
-  marginBottom: '8px',
-  fontWeight: '500',
-});
-
-const Input = styled('input')({
-  width: '100%',
-  padding: '8px',
-  borderRadius: '4px',
-  border: '1px solid #ddd',
-  marginBottom: '8px',
-});
-
-const TextArea = styled('textarea')({
-  width: '100%',
-  padding: '8px',
-  borderRadius: '4px',
-  border: '1px solid #ddd',
-  minHeight: '100px',
-  marginBottom: '8px',
-});
-
-const Select = styled('select')({
-  width: '100%',
-  padding: '8px',
-  borderRadius: '4px',
-  border: '1px solid #ddd',
-  marginBottom: '8px',
-});
-
-const Button = styled('button')({
-  backgroundColor: '#007bff',
-  color: 'white',
-  padding: '10px 20px',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  '&:hover': {
-    backgroundColor: '#0056b3',
-  },
-});
 
 const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails>({
@@ -146,7 +91,6 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
     setShowAllHistory(false); // Reset show more on project change
   }, [projectId]);
 
-
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -206,223 +150,405 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
   };
 
   if (loading) {
-    return <Container>Loading...</Container>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+      </div>
+    );
   }
 
   if (error) {
-    return <Container>Error: {error}</Container>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <XCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error Loading Project</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
   }
 
   // Aggregate send history
   const totalMessages = sendHistory.length;
   const successfulMessages = sendHistory.filter(h => h.status === 'success').length;
   const failedMessages = sendHistory.filter(h => h.status !== 'success').length;
+  const successRate = totalMessages > 0 ? ((successfulMessages / totalMessages) * 100).toFixed(1) : '0';
 
   return (
-    <Container>
+    <div className="min-h-screen bg-gray-50">
       <ToastContainer position="top-center" autoClose={3000} />
-      {/* Summary Section */}
-      <Section style={{ marginBottom: 24, background: '#f8fafc', border: '1px solid #e5e7eb' }}>
-        <Title>Summary</Title>
-        {historyLoading ? (
-          <div>Loading summary...</div>
-        ) : historyError ? (
-          <div style={{ color: 'red' }}>{historyError}</div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
-            <div><b>Total Sent:</b> {totalMessages}</div>
-            <div><b>Successful:</b> {successfulMessages}</div>
-            <div><b>Failed:</b> {failedMessages}</div>
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontWeight: 500 }}>Enable</span>
-              <Switch
-                checked={!!schedulerConfig.is_enabled}
-                onChange={handleEnableToggle}
-                color="primary"
-                inputProps={{ 'aria-label': 'Enable Scheduler' }}
-              />
+      
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{projectDetails.productname || 'Project Details'}</h1>
+              <p className="text-gray-600 mt-1">Project ID: {projectId}</p>
             </div>
+            <Button onClick={handleSave} disabled={loading} variant="default">
+              {loading ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
-        )}
-      </Section>
-      {/* Top Subreddits Section */}
-      <Section style={{ marginBottom: 24 }}>
-        <Title>Top Subreddits</Title>
-        {loading ? (
-          <div>Loading subreddits...</div>
-        ) : error ? (
-          <div style={{ color: 'red' }}>{error}</div>
-        ) : topSubreddits.length === 0 ? (
-          <div>No subreddits found.</div>
-        ) : (
-          <div>
-            {topSubreddits.map((sub, idx) => (
-              <div key={idx} style={{ marginBottom: 16, padding: 12, border: '1px solid #eee', borderRadius: 6 }}>
-                <a href={`https://reddit.com/${sub}`} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 600, fontSize: 18 }}>
-                  {sub}
-                </a>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Metrics Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="transform transition-all duration-200 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <PaperAirplaneIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Sent</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalMessages}</p>
+                </div>
               </div>
-            ))}
+            </CardContent>
+          </Card>
+
+          <Card className="transform transition-all duration-200 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Successful</p>
+                  <p className="text-2xl font-bold text-gray-900">{successfulMessages}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="transform transition-all duration-200 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Failed</p>
+                  <p className="text-2xl font-bold text-gray-900">{failedMessages}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="transform transition-all duration-200 hover:scale-105">
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <ChartBarIcon className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Success Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">{successRate}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Project Details & Configuration */}
+          <div className="lg:col-span-2 space-y-6">
+                        {/* Configuration */}
+                        <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CogIcon className="h-5 w-5 mr-2" />
+                  Automation Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h3 className="font-medium text-gray-900">Enable Automated DMs</h3>
+                    <p className="text-sm text-gray-600">Automatically send messages based on your schedule</p>
+                  </div>
+                  <Switch
+                    checked={!!schedulerConfig.is_enabled}
+                    onChange={handleEnableToggle}
+                    color="primary"
+                    inputProps={{ 'aria-label': 'Enable Scheduler' }}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of DMs per day: {schedulerConfig.dm_num}
+                  </label>
+                  <Slider
+                    value={schedulerConfig.dm_num}
+                    onChange={(_, value) => handleSchedulerConfigChange('dm_num', value)}
+                    min={1}
+                    max={10}
+                    marks
+                    valueLabelDisplay="auto"
+                    className="mt-4"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+            {/* Project Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CogIcon className="h-5 w-5 mr-2" />
+                  Project Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+                    <Input
+                      value={projectDetails.productname}
+                      onChange={(e) => handleProjectDetailsChange('productname', e.target.value)}
+                      placeholder="Enter product name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
+                    <Input
+                      value={projectDetails.url}
+                      onChange={(e) => handleProjectDetailsChange('url', e.target.value)}
+                      placeholder="https://yourproduct.com"
+                    />
+                  </div>
+                </div>
+                
+                                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-2">Message Subject</label>
+                   <Input
+                     value={projectDetails.subject}
+                     onChange={(e) => handleProjectDetailsChange('subject', e.target.value)}
+                     placeholder="Subject line for your messages..."
+                   />
+                 </div>
+
+                 <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-2">Message Copy</label>
+                   <Textarea
+                     value={projectDetails.message_copy}
+                     onChange={(e) => handleProjectDetailsChange('message_copy', e.target.value)}
+                     placeholder="Write your message template. Use {username} to personalize..."
+                     rows={8}
+                   />
+                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Send History */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <PaperAirplaneIcon className="h-5 w-5 mr-2" />
+                  Send History
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {historyLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  </div>
+                ) : historyError ? (
+                  <div className="text-center py-8">
+                    <XCircleIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                    <p className="text-red-600">{historyError}</p>
+                  </div>
+                ) : sendHistory.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <PaperAirplaneIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No send history found.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipient</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {(showAllHistory ? sendHistory : sendHistory.slice(0, 10)).map((row, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.to}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                row.status === 'success' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {row.status === 'success' ? (
+                                  <CheckCircleIcon className="h-3 w-3 mr-1" />
+                                ) : (
+                                  <XCircleIcon className="h-3 w-3 mr-1" />
+                                )}
+                                {row.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {new Date(row.created_date).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {sendHistory.length > 10 && (
+                      <div className="mt-4 text-center">
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowAllHistory(!showAllHistory)}
+                        >
+                          {showAllHistory ? 'Show Less' : 'Show More'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        )}
-      </Section>
-      {/* ... existing Product Details section ... */}
-      <Section>
-        <Title>Product Details</Title>
-        <FormGroup>
-          <Label>Product Name</Label>
-          <Input
-            value={projectDetails.productname}
-            onChange={(e) => handleProjectDetailsChange('productname', e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>URL</Label>
-          <Input
-            value={projectDetails.url}
-            onChange={(e) => handleProjectDetailsChange('url', e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>Elevator Pitch</Label>
-          <TextArea
-            value={projectDetails.elevatorpitch}
-            onChange={(e) => handleProjectDetailsChange('elevatorpitch', e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>Purpose</Label>
-          <Input
-            value={projectDetails.purpose}
-            onChange={(e) => handleProjectDetailsChange('purpose', e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>Subject</Label>
-          <TextArea
-            value={projectDetails.subject}
-            onChange={(e) => handleProjectDetailsChange('subject', e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Label>Message Copy</Label>
-          <TextArea
-            value={projectDetails.message_copy}
-            onChange={(e) => handleProjectDetailsChange('message_copy', e.target.value)}
-          />
-        </FormGroup>
-      </Section>
-      <Section>
-        <Title>Configure</Title>
-        <FormGroup>
-          <Label>Number of DMs</Label>
-          <Slider
-            value={schedulerConfig.dm_num}
-            onChange={(_, value) => handleSchedulerConfigChange('dm_num', value)}
-            min={1}
-            max={10}
-            marks
-            valueLabelDisplay="auto"
-          />
-        </FormGroup>
-        {/* Success/Error message */}
-        <Button onClick={handleSave} disabled={loading}>
-          {loading ? 'Saving...' : 'Save Changes'}
-        </Button>
-      </Section>
-      {/* Reddit Button and Status */}
-      <Section>
-        <Title>Reddit Integration</Title>
-        {redditLoading ? (
-          <div>Loading Reddit status...</div>
-        ) : redditStatus.reddit_username ? (
-          <>
-            <div style={{ marginBottom: 8, color: 'gray', fontWeight: 500 }}>
-              Connected as: <b>u/{redditStatus.reddit_username}</b>
-            </div>
-            <button
-              style={{ background: '#ff4500', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer', marginBottom: 8 }}
-              onClick={() => {
-                // Reconnect logic: redirect to Reddit OAuth
-                const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
-                const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
-                if (!clientId || !redirectUri) {
-                  alert('Reddit API client ID or redirect URI is not configured.');
-                  return;
-                }
-                const randomState = Math.random().toString(36).substring(2, 15);
-                document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
-                document.cookie = `project_id=${projectId}; max-age=600; path=/`;
-                const scope = 'identity privatemessages'.replace(' ', ',');
-                const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
-                window.location.href = authUrl;
-              }}
-            >Reconnect Reddit Account</button>
-          </>
-        ) : (
-          <button
-            style={{ background: '#ff4500', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer', marginBottom: 8 }}
-            onClick={() => {
-              // Connect logic: redirect to Reddit OAuth
-              const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
-              const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
-              if (!clientId || !redirectUri) {
-                alert('Reddit API client ID or redirect URI is not configured.');
-                return;
-              }
-              const randomState = Math.random().toString(36).substring(2, 15);
-              document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
-              document.cookie = `project_id=${projectId}; max-age=600; path=/`;
-              const scope = 'identity privatemessages'.replace(' ', ',');
-              const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
-              window.location.href = authUrl;
-            }}
-          >Connect Reddit Account</button>
-        )}
-      </Section>
-      {/* ... existing Send History section ... */}
-      <Section>
-        <Title>Send History</Title>
-        {historyLoading ? (
-          <div>Loading...</div>
-        ) : historyError ? (
-          <div>Error: {historyError}</div>
-        ) : sendHistory.length === 0 ? (
-          <div>No send history found.</div>
-        ) : (
-          <>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '8px' }}>To</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '8px' }}>Status</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '8px' }}>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(showAllHistory ? sendHistory : sendHistory.slice(0, 10)).map((row, idx) => (
-                  <tr key={idx}>
-                    <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>{row.to}</td>
-                    <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>{row.status}</td>
-                    <td style={{ padding: '8px', borderBottom: '1px solid #f0f0f0' }}>{new Date(row.created_date).toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {sendHistory.length > 10 && !showAllHistory && (
-              <button style={{ marginTop: '12px' }} onClick={() => setShowAllHistory(true)}>
-                Show More
-              </button>
-            )}
-            {showAllHistory && sendHistory.length > 10 && (
-              <button style={{ marginTop: '12px' }} onClick={() => setShowAllHistory(false)}>
-                Show Less
-              </button>
-            )}
-          </>
-        )}
-      </Section>
-    </Container>
+
+          {/* Right Column - Sidebar */}
+          <div className="space-y-6">
+            {/* Reddit Integration */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <LinkIcon className="h-5 w-5 mr-2" />
+                  Reddit Integration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {redditLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  </div>
+                ) : redditStatus.reddit_username ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center">
+                        <CheckCircleIcon className="h-5 w-5 text-green-600 mr-2" />
+                        <span className="text-sm font-medium text-green-800">Connected</span>
+                      </div>
+                      <p className="text-sm text-green-700 mt-1">
+                        u/{redditStatus.reddit_username}
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+                        const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
+                        if (!clientId || !redirectUri) {
+                          alert('Reddit API client ID or redirect URI is not configured.');
+                          return;
+                        }
+                        const randomState = Math.random().toString(36).substring(2, 15);
+                        document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
+                        document.cookie = `project_id=${projectId}; max-age=600; path=/`;
+                        const scope = 'identity privatemessages'.replace(' ', ',');
+                        const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
+                        window.location.href = authUrl;
+                      }}
+                      className="w-full"
+                    >
+                      Reconnect Account
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="flex items-center">
+                        <ExclamationTriangleIcon className="h-5 w-5 text-yellow-600 mr-2" />
+                        <span className="text-sm font-medium text-yellow-800">Not Connected</span>
+                      </div>
+                      <p className="text-sm text-yellow-700 mt-1">
+                        Connect your Reddit account to start sending messages
+                      </p>
+                    </div>
+                    <Button
+                      variant="reddit"
+                      onClick={() => {
+                        const clientId = process.env.NEXT_PUBLIC_REDDIT_CLIENT_ID;
+                        const redirectUri = process.env.NEXT_PUBLIC_REDDIT_REDIRECT_URI;
+                        if (!clientId || !redirectUri) {
+                          alert('Reddit API client ID or redirect URI is not configured.');
+                          return;
+                        }
+                        const randomState = Math.random().toString(36).substring(2, 15);
+                        document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
+                        document.cookie = `project_id=${projectId}; max-age=600; path=/`;
+                        const scope = 'identity privatemessages'.replace(' ', ',');
+                        const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
+                        window.location.href = authUrl;
+                      }}
+                      className="w-full"
+                    >
+                      Connect Reddit Account
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Top Subreddits */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <UserGroupIcon className="h-5 w-5 mr-2" />
+                  Target Subreddits
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-4">
+                    <XCircleIcon className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                    <p className="text-red-600 text-sm">{error}</p>
+                  </div>
+                ) : topSubreddits.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    <UserGroupIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">No subreddits found.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {topSubreddits.map((sub, idx) => (
+                      <a
+                        key={idx}
+                        href={`https://reddit.com/${sub}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                      >
+                        <div className="flex items-center">
+                          <LinkIcon className="h-4 w-4 text-gray-400 mr-2" />
+                          <span className="font-medium text-gray-900">{sub}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
