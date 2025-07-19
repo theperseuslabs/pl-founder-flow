@@ -3,6 +3,7 @@ import { ClipLoader } from 'react-spinners';
 import { useAuth } from '@/lib/firebase/AuthContext';
 import { track, getUserId } from '@/utils/mixpanel';
 import { useRouter } from 'next/navigation';
+import { normalizeUrl } from '../utils/normalizeUrl';
 
 export interface RedditDMSectionProps {
   initialFields?: {
@@ -133,9 +134,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
     setIsAnalyzing(true);
     setAnalysisError(null);
     try {
-      const productUrl = fields.productUrl.startsWith('http') 
-        ? fields.productUrl 
-        : `https://${fields.productUrl}`;
+      const productUrl = normalizeUrl(fields.productUrl);
       const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/generate_elevatorPitch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
