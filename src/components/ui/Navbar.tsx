@@ -45,6 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
   const handleSignOut = async () => {
     try {
       await auth.logout();
+      window.location.href = '/';
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -62,22 +63,19 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
             </span>
           </Link>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-4">
-            {isSubscribed && (
-              <Button
-                variant="ghost"
-                onClick={() => window.location.href = '/dashboard'}
-                leftIcon={<FolderIcon className="h-4 w-4" />}
-                className="transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
-              >
-                All Projects
-              </Button>
-            )}
-          </div>
 
           {/* User Section */}
           <div className="flex items-center space-x-4">
+            {auth.user && (
+              <Button
+                variant="ghost"
+                onClick={() => window.location.href = '/dashboard'}
+                // leftIcon={<FolderIcon className="h-4 w-4" />}
+                className="transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+              >
+                Dashboard
+              </Button>
+            )}
             {auth.loading ? (
               <div className="flex items-center space-x-2 text-gray-500">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

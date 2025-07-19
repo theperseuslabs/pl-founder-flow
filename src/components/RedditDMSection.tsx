@@ -270,40 +270,185 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
               </div>
             ) : results.length > 0 ? (
               <div className="space-y-6">
-                {/* Results display */}
-                <div className="space-y-4">
-                  {results.map((result, index) => (
-                    <div
-                      key={index}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 transform hover:scale-[1.02]"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">
-                            r/{result.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {result.description}
-                          </p>
-                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                            <span>👥 {result.subscribers?.toLocaleString() || 'N/A'} members</span>
-                            <span>📊 {result.active_user_count?.toLocaleString() || 'N/A'} online</span>
+                {/* Top Subreddits Section */}
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">Top Subreddits</h2>
+                  <div className="space-y-4">
+                    {results.map((result, index) => {
+                      if (index === results.length - 1) return null;
+                      if (index === 0) return null;
+                      const isExpanded = expandedSubreddits.includes(index);
+                      const potentialCustomers = result.top_authors?.length || 0;
+                      const shouldBlur = !auth?.user && index >= 2;
+                      
+                      if (index === 2 && !auth?.user) {
+                        return (
+                          <div key="signin-prompt" className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg">
+                            <Button 
+                              onClick={() => auth?.signInWithGoogle()}
+                              className="flex items-center space-x-2 mx-auto"
+                            >
+                              <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+                              <span>Sign in with Google to view all subreddits</span>
+                            </Button>
                           </div>
+                        );
+                      }
+                      
+                      return (
+                        <div key={index} className={`border border-gray-200 rounded-lg ${shouldBlur ? 'opacity-50' : 'hover:border-blue-300 hover:bg-blue-50'} transition-all duration-200`}>
+                          <div
+                            className="p-4 cursor-pointer"
+                            onClick={() => !shouldBlur && toggleSubreddit(index)}
+                            style={{ cursor: shouldBlur ? 'not-allowed' : 'pointer' }}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-gray-900">
+                                  <a href={`https://reddit.com${result.display_name_prefixed}`} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                                    {result.display_name_prefixed}
+                                  </a>
+                                </h3>
+                                <p className="text-sm text-gray-600 mt-1">
+                                  Found {potentialCustomers} leads from recently active users
+                                </p>
+                              </div>
+                              {!shouldBlur && (
+                                <div className="text-2xl font-bold text-gray-400 hover:text-gray-600">
+                                  {isExpanded ? '−' : '+'}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {isExpanded && !shouldBlur && (
+                            <div className="px-4 pb-4 border-t border-gray-100">
+                              <div className="pt-4 space-y-4">
+                                <div>
+                                  <p className="text-sm text-gray-600">
+                                    {result.subscribers?.toLocaleString() || 'N/A'} subscribers
+                                  </p>
+                                  <p className="text-sm text-gray-700 mt-2">{result.description}</p>
+                                </div>
+                                
+                                {result.top_authors && result.top_authors.length > 0 && (
+                                  <div>
+                                    <h4 className="font-medium text-gray-900 mb-3">Top Users</h4>
+                                    <div className="space-y-3">
+                                      {result.top_authors.map((author: any, idx: number) => (
+                                        <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                                          <div className="space-y-2">
+                                            <a 
+                                              href={author.profile_url} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer" 
+                                              className="font-medium text-blue-600 hover:text-blue-800"
+                                            >
+                                              {author.author.replace('t2_', '')}
+                                            </a>
+                                            <p className="text-sm text-gray-700">{author.top_post_title}</p>
+                                            <a 
+                                              href={author.url} 
+                                              target="_blank" 
+                                              rel="noopener noreferrer" 
+                                              className="text-sm text-blue-600 hover:text-blue-800"
+                                            >
+                                              View Post →
+                                            </a>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-gray-900">
-                            {result.relevance_score}% relevant
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {result.reasoning}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                      );
+                    })}
+                  </div>
                 </div>
                 
-                <div className="flex justify-center space-x-4">
+                {/* Message Section */}
+                {results[results.length - 1]?.output && (
+                  <div className="border border-gray-200 rounded-lg p-6">
+                    <div className="mb-4">
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">AI-generated Reddit DM template</h2>
+                      <p className="text-gray-600">
+                        We're building automated Reddit DM campaigns that target your best-fit audience. Join the waitlist to be the first to know when we launch. For now, you can test this personalized DM by providing your Reddit handle below.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {editedDM !== null && (
+                        <>
+                          <div>
+                            <label htmlFor="dm-subject" className="block text-sm font-medium text-gray-700 mb-2">
+                              Subject
+                            </label>
+                            <textarea
+                              id="dm-subject"
+                              value={editedDM.subject || ''}
+                              onChange={(e) => handleDMChange('subject', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              rows={2}
+                              placeholder="Enter DM subject"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="dm-body" className="block text-sm font-medium text-gray-700 mb-2">
+                              Message
+                            </label>
+                            <textarea
+                              id="dm-body"
+                              value={editedDM.body || ''}
+                              onChange={(e) => handleDMChange('body', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              rows={8}
+                              placeholder="Enter DM message"
+                            />
+                          </div>
+                        </>
+                      )}
+                      
+                      {editedDM === null && (
+                        <div className={`space-y-4 ${!auth?.user ? 'relative' : ''}`}>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Subject</h4>
+                            <p className="text-gray-900 bg-gray-50 p-3 rounded-md">
+                              Loading...
+                            </p>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Message</h4>
+                            <div className="relative">
+                              <p className="text-gray-900 bg-gray-50 p-3 rounded-md whitespace-pre-wrap">
+                                Loading...
+                              </p>
+                              {!auth?.user && (
+                                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-center">
+                                  <div className="text-center">
+                                    <h3 className="font-medium text-gray-900 mb-3">Sign in to view full message</h3>
+                                    <Button 
+                                      onClick={() => auth?.signInWithGoogle()}
+                                      className="flex items-center space-x-2"
+                                    >
+                                      <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+                                      <span>Sign in with Google</span>
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-center space-x-4 mt-6">
                   <Button 
                     variant="outline" 
                     onClick={() => setResults([])}
@@ -321,7 +466,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
               </div>
             ) : (
               <Form onSubmit={handleSubmit} className="space-y-6">
-                <FormField label="Business/Product Name *" required>
+                <FormField label="Business/Product Name" required>
                   <Input
                     name="productName"
                     value={fields.productName}
@@ -332,7 +477,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
                   />
                 </FormField>
                 
-                <FormField label="Product/Website URL *" required>
+                <FormField label="Product/Website URL" required>
                   <Input
                     name="productUrl"
                     value={fields.productUrl}
@@ -343,7 +488,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
                   />
                 </FormField>
                 
-                <FormField label="Intent of Outreach *" required>
+                <FormField label="Intent of Outreach" required>
                   <select
                     name="ask"
                     value={fields.ask}

@@ -537,7 +537,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
                       >
                         <div className="flex items-center">
                           <LinkIcon className="h-4 w-4 text-gray-400 mr-2" />
-                          <span className="font-medium text-gray-900">r/{sub}</span>
+                          <span className="font-medium text-gray-900">{sub}</span>
                         </div>
                       </a>
                     ))}
