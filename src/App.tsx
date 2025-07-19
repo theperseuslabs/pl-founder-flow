@@ -1,13 +1,11 @@
-import './App.css';
-import { useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { ClipLoader } from 'react-spinners';
-import { track, identify, getUserId } from '@/utils/mixpanel';
-import Clarity from './components/Clarity';
-import { useAuth } from '@/lib/firebase/AuthContext';
-import { BlurredContent } from '@/components/BlurredContent';
-import { PricingModal } from './components/PricingModal';
-import { RedditDMSection } from './components/RedditDMSection';
+'use client'
+
+import React, { useState, useEffect } from 'react';
+import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea, Modal, Footer } from '@/components/ui';
+import { RedditDMSection } from '@/components/RedditDMSection';
+import { PricingModal } from '@/components/PricingModal';
+import { Clarity } from '@/components/Clarity';
+import { track, getUserId } from '@/utils/mixpanel';
 
 interface TopAuthor {
   author: string;
@@ -42,435 +40,147 @@ interface ApiResponse {
 }
 
 function App() {
-  const [isHowItWorksExpanded, setIsHowItWorksExpanded] = useState(false);
-  const [expandedCards, setExpandedCards] = useState<number[]>([]);
-  const [fields, setFields] = useState(() => {
-    // Initialize with empty values first
-    const initialFields = {
-      productName: '',
-      productUrl: '',
-      problemSolved: '',
-      ask: '',
-      redditHandle: '',
-      email: '',
-    };
-
-    // Only try to load from localStorage on the client side
-    if (typeof window !== 'undefined') {
-      const savedFields = localStorage.getItem('ema_form_data');
-      if (savedFields) {
-        try {
-          const parsedFields = JSON.parse(savedFields);
-          // Merge saved fields with initial fields to ensure all required fields exist
-          return { ...initialFields, ...parsedFields };
-        } catch (error) {
-          console.error('Error loading saved form data:', error);
-        }
-      }
-    }
-
-    return initialFields;
+  const [fields, setFields] = useState({
+    productName: '',
+    productUrl: '',
+    ask: ''
   });
-  const [touched, setTouched] = useState({
-    productName: false,
-    productUrl: false,
-    problemSolved: false,
-    ask: false,
-    redditHandle: false,
-    email: false,
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+
   const [results, setResults] = useState<ApiResponse[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSendingDM, setIsSendingDM] = useState(false);
-  const [showRedditModal, setShowRedditModal] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [redditHandleInput, setRedditHandleInput] = useState('');
-  const [emailInput, setEmailInput] = useState('');
-  const [redditHandleError, setRedditHandleError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [isFormValid, setIsFormValid] = useState(false);
-  const [currentStep, setCurrentStep] = useState<number>(-1);
-  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistEmailError, setWaitlistEmailError] = useState('');
-  const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
-  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
-  const [isSendingEmail, setIsSendingEmail] = useState(false);
-  const [deliverablesResponse, setDeliverablesResponse] = useState<{
-    product_name: string;
-    outcome: string;
-    offering: string;
-    differentiator: string;
-  } | null>(null);
-
-  const [editedDeliverables, setEditedDeliverables] = useState<{
-    product_name: string;
-    outcome: string;
-    offering: string;
-    differentiator: string;
-  } | null>(null);
-
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-
-  const [expandedSubreddits, setExpandedSubreddits] = useState<number[]>([]);
-
-  const [editedDM, setEditedDM] = useState<{
-    subject: string;
-    body: string;
-  } | null>(null);
-
-  const [isEditingDM, setIsEditingDM] = useState(false);
-
-  const [isSendingToLeads, setIsSendingToLeads] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<number[]>([]);
+  const [selectedSubreddits, setSelectedSubreddits] = useState<number[]>([]);
+  const [dmContent, setDmContent] = useState({
+    subject: '',
+    body: ''
+  });
 
-  const progressSteps = [
-    `Extracting additional keywords for ${fields.productName}`,
-    `Finding top subreddits for ${fields.productName}`,
-    `Finding top redditors for ${fields.productName}`,
-    `Composing reddit engagement DM for ${fields.productName}`,
-    'Packaging results...'
-  ];
-  
-  const auth = useAuth();
-  
   const getRandomWaitTime = () => {
-    // Random time between 1500ms and 3000ms
-    return Math.floor(Math.random() * (3000 - 1500 + 1)) + 1500;
+    return Math.floor(Math.random() * 3000) + 2000; // 2-5 seconds
   };
 
   const ProgressLoader = () => {
-    if (currentStep === -1) return null;
-    
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + Math.random() * 15;
+        });
+      }, 200);
+
+      return () => clearInterval(interval);
+    }, []);
+
     return (
-      <div className="ff-progress-loader">
-        <div className="ff-progress-steps">
-          {progressSteps.map((step, index) => (
-            <div 
-              key={index} 
-              className={`ff-progress-step ${index === currentStep ? 'active' : index < currentStep ? 'completed' : ''}`}
-            >
-              <div className="ff-progress-dot">
-                {index < currentStep ? '✓' : index === currentStep ? '⟳' : ''}
-              </div>
-              <div className="ff-progress-text">{step}</div>
-            </div>
-          ))}
+      <div className="w-full max-w-md mx-auto">
+        <div className="mb-2 flex justify-between text-sm text-gray-600">
+          <span>Analyzing your product...</span>
+          <span>{Math.round(progress)}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${progress}%` }}
+          ></div>
         </div>
       </div>
     );
   };
 
-  // Initialize user identification on component mount
-  useEffect(() => {
-    // Identify user and track page view
-    identify();
-    track('Page View', {
-      page: 'Home',
-      user_id: getUserId(),
-      timestamp: new Date().toISOString()
-    });
-  }, []);
-
-  // Validate form fields whenever relevant fields change
-  useEffect(() => {
-    const validateFields = () => {
-      return (
-        fields.productName.trim() !== '' &&
-        fields.productUrl.trim() !== '' &&
-        fields.ask.trim() !== ''
-      );
-    };
-    
-    setIsFormValid(validateFields());
-  }, [fields.productName, fields.productUrl, fields.ask]);
-
-  // Save form data to localStorage whenever fields change
-  useEffect(() => {
-    localStorage.setItem('ema_form_data', JSON.stringify(fields));
-  }, [fields]);
-
-  useEffect(() => {
-    const lastResult = results[results.length - 1];
-    if (lastResult?.output) {
-      setEditedDM({
-        subject: lastResult.output.subject || '',
-        body: lastResult.output.body || ''
-      });
-    }
-  }, [results]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    // Track form field changes with user ID
-    // track('Form Field Change', {
-    //   field: name,
-    //   value_length: value.length,
-    //   user_id: getUserId(),
-    //   timestamp: new Date().toISOString()
-    // });
-    
-    // Special handling for subreddit input
-    if (name === 'subreddit') {
-      const cleanValue = value.replace(/[\s,]+/g, '').replace(/^r\//, '');
-      setFields((prev: typeof fields) => ({ ...prev, [name]: cleanValue }));
-    } else {
-      setFields((prev: typeof fields) => ({ ...prev, [name]: value }));
-    }
-  };
-  
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setTouched({ ...touched, [e.target.name]: true });
-  };
-
-  const dummyData=[
-    {
-        "top_ranked_authors": [
-            {
-                "author": "Cat_Booger",
-                "avg_score": 3729,
-                "avg_upvote_ratio": 0.95,
-                "rank_score": 0.6,
-                "reason": "High average score",
-                "total_posts": 1,
-                "profile_url": "https://www.reddit.com/user/Cat_Booger",
-                "top_post_title": "Started on April 8th with a 2K account, only trading options, hit 6 figures for the first time in my life. What did you do when you hit your first 6 figures?",
-                "url": "https://www.reddit.com/r/Daytrading/comments/1kkb90d/started_on_april_8th_with_a_2k_account_only/"
-            },
-            {
-                "author": "satireplusplus",
-                "avg_score": 11,
-                "avg_upvote_ratio": 0.9,
-                "rank_score": 0.502,
-                "reason": "High activity",
-                "total_posts": 5,
-                "profile_url": "https://www.reddit.com/user/satireplusplus",
-                "top_post_title": "Daily r/thetagang Discussion Thread - What are your moves for today?",
-                "url": "https://www.reddit.com/r/thetagang/comments/1klge3w/daily_rthetagang_discussion_thread_what_are_your/"
-            },
-            {
-                "author": "AutoModerator",
-                "avg_score": 16,
-                "avg_upvote_ratio": 0.85,
-                "rank_score": 0.502,
-                "reason": "High activity",
-                "total_posts": 5,
-                "profile_url": "https://www.reddit.com/user/AutoModerator",
-                "top_post_title": "r/Stocks Daily Discussion &amp; Technicals Tuesday - May 13, 2025",
-                "url": "https://www.reddit.com/r/stocks/comments/1klhn9p/rstocks_daily_discussion_technicals_tuesday_may/"
-            },
-            {
-                "author": "GrowYourConscious",
-                "avg_score": 1392,
-                "avg_upvote_ratio": 0.98,
-                "rank_score": 0.287,
-                "reason": "High average score",
-                "total_posts": 1,
-                "profile_url": "https://www.reddit.com/user/GrowYourConscious",
-                "top_post_title": "I've Been Options Trading for 10 Years, and These Are My 5 Biggest Tips",
-                "url": "https://www.reddit.com/r/options/comments/1ko421w/ive_been_options_trading_for_10_years_and_these/"
-            },
-            {
-                "author": "Prudent_Comfort_9089",
-                "avg_score": 1260,
-                "avg_upvote_ratio": 0.95,
-                "rank_score": 0.269,
-                "reason": "High average score",
-                "total_posts": 1,
-                "profile_url": "https://www.reddit.com/user/Prudent_Comfort_9089",
-                "top_post_title": "Using AI to find options trade opportunities. Full guide + prompts below",
-                "url": "https://www.reddit.com/r/options/comments/1kbzkii/using_ai_to_find_options_trade_opportunities_full/"
-            },
-            {
-                "author": "iquitoptions",
-                "avg_score": 286,
-                "avg_upvote_ratio": 0.91,
-                "rank_score": 0.138,
-                "reason": "High activity",
-                "total_posts": 1,
-                "profile_url": "https://www.reddit.com/user/iquitoptions",
-                "top_post_title": "Losses that haunt me — options trading wiped out my savings. Who else?",
-                "url": "https://www.reddit.com/r/options/comments/1kqv3lo/losses_that_haunt_me_options_trading_wiped_out_my/"
-            }
-        ]
-    },
-    {
-        "top_subreddits": [
-            {
-                "display_name_prefixed": "r/stocks",
-                "title": "Stocks - Investing and trading for all",
-                "description": "The most serious place on Reddit for Stock related discussions!  Don't hesitate to tell us about a ticker we should know about, market news, or financial education.\n\nCheck out our WIKI that has beginner &amp; advanced topics on both investing &amp; trading.",
-                "subscribers": 8853774,
-                "frequency": 5,
-                "score": 1,
-                "url": "https://www.reddit.com/r/stocks"
-            },
-            {
-                "display_name_prefixed": "r/Daytrading",
-                "title": "Daytrading: Information for your everyday trader",
-                "description": "Daytrading futures, forex, stocks, etc.",
-                "subscribers": 4872060,
-                "frequency": 5,
-                "score": 0.7751402961042375,
-                "url": "https://www.reddit.com/r/Daytrading"
-            },
-            {
-                "display_name_prefixed": "r/investing",
-                "title": "Lose money with friends!",
-                "description": "",
-                "subscribers": 3031924,
-                "frequency": 5,
-                "score": 0.6712221251638002,
-                "url": "https://www.reddit.com/r/investing"
-            },
-            {
-                "display_name_prefixed": "r/options",
-                "title": "/r/Options ",
-                "description": "Let's Talk About:     \nExchange Traded Financial Options   -- \nOptions Fundamentals     --  \nThe Greeks    --  \nStrategies     --  \nCurrent Plays and Ideas      --  \nQ&amp;A  --   \n**New Traders**: See the Options Questions Safe Haven weekly thread",
-                "subscribers": 1293260,
-                "frequency": 5,
-                "score": 0.5730343918875724,
-                "url": "https://www.reddit.com/r/options"
-            },
-            {
-                "display_name_prefixed": "r/thetagang",
-                "title": "selling options",
-                "description": "We are selling options to WSB degenerates using thetagang strategies!  🐌 🐌 🐌",
-                "subscribers": 279971,
-                "frequency": 5,
-                "score": 0.5158108282411545,
-                "url": "https://www.reddit.com/r/thetagang"
-            },
-            {
-                "display_name_prefixed": "r/StockMarket",
-                "title": "r/StockMarket - Reddit's Front Page of the Stock Market",
-                "description": "Welcome to /r/StockMarket! Our objective is to provide short and mid term trade ideas, market analysis &amp; commentary for active traders and investors. Posts about equities, options, forex, futures, analyst upgrades &amp; downgrades, technical and fundamental analysis, and the stock market in general are all welcome.",
-                "subscribers": 3827012,
-                "frequency": 1,
-                "score": 0.31612320350621104,
-                "url": "https://www.reddit.com/r/StockMarket"
-            },
-            {
-                "display_name_prefixed": "r/FinancialPlanning",
-                "title": "Financial Planning, Personal Finance, Frugality, Money, and More!",
-                "description": "Discuss and ask questions about personal finances, budgeting, income, retirement plans, insurance, investing, and frugality.",
-                "subscribers": 958231,
-                "frequency": 2,
-                "score": 0.2541142681075889,
-                "url": "https://www.reddit.com/r/FinancialPlanning"
-            }
-        ]
-    },
-    {
-        "output": {
-            "subject": "Options trading? Saw your comments!",
-            "body": "Finding high-yield option trades can be a grind. Wheel Strategy helps find them fast – it's built by option sellers, for option sellers.\n\nI noticed you were chatting about similar stuff, so thought you might dig it. \n\nWant to try it and tell me what you think? -> wheelstrategyoptions.co\n\nAppreciate your thoughts!"
-        }
-    }
-]
-  const isDebug = true;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
     
-    setSubmitted(true);
+    const validateFields = () => {
+      if (!fields.productName.trim()) {
+        alert('Please enter your business/product name');
+        return false;
+      }
+      if (!fields.productUrl.trim()) {
+        alert('Please enter your product/website URL');
+        return false;
+      }
+      if (!fields.ask.trim()) {
+        alert('Please select the intent of outreach');
+        return false;
+      }
+      return true;
+    };
+
+    if (!validateFields()) return;
+
     setLoading(true);
-    setIsSubmitting(true);
-    setError(null);
     setResults([]);
-    setCurrentStep(0);
-    
-    // Track form submission with user ID
-    track('Form Submission', {
+
+    // Track form submission
+    track('Form Submitted', {
       product_name: fields.productName,
-      has_url: !!fields.productUrl,
+      product_url: fields.productUrl,
+      intent: fields.ask,
       user_id: getUserId(),
       timestamp: new Date().toISOString()
     });
-    
-    try {
-      // Simulate progress steps with random wait times
-      for (let i = 0; i < progressSteps.length; i++) {
-        setCurrentStep(i);
-        await new Promise(resolve => setTimeout(resolve, getRandomWaitTime()));
-      }
 
-      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/generate_deliverables', {
+    try {
+      const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          output: {
-            product_name: editedDeliverables?.product_name || fields.productName,
-            outcome: editedDeliverables?.outcome || '',
-            offering: editedDeliverables?.offering || '',
-            differentiator: editedDeliverables?.differentiator || '',
-            prod_url: fields.productUrl,
-            cta: fields.ask
-          }
+          name: fields.productName,
+          url: fields.productUrl,
+          ask: fields.ask
         }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch results');
-      }
-      
-      const data = await response.json();
-      setResults(data);
 
-      // Track successful results with user ID
-      track('Results Generated', {
-        has_subreddits: data.length > 0,
-        has_message: !!data[data.length - 1]?.output,
+      if (!response.ok) {
+        throw new Error('Failed to submit form');
+      }
+
+      const data = await response.json();
+      
+      // Simulate loading time
+      await new Promise(resolve => setTimeout(resolve, getRandomWaitTime()));
+      
+      setResults([data]);
+      
+      // Track successful submission
+      track('Form Success', {
+        product_name: fields.productName,
         user_id: getUserId(),
         timestamp: new Date().toISOString()
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('An error occurred. Please try again.');
       
-      // Track error with user ID
+      // Track error
       track('Form Error', {
-        error_message: err instanceof Error ? err.message : 'Unknown error',
+        product_name: fields.productName,
+        error: error instanceof Error ? error.message : 'Unknown error',
         user_id: getUserId(),
         timestamp: new Date().toISOString()
       });
     } finally {
       setLoading(false);
-      setIsSubmitting(false);
-      setCurrentStep(-1);
-      setTimeout(() => setSubmitted(false), 2500);
     }
   };
 
-  const steps = [
-    {
-      title: "Stealth lead generation growth",
-      color: "#FF4500",
-      description: "Automate your lead generation process with our advanced tools and workflows."
-    },
-    {
-      title: "Increased engagement and retention",
-      color: "#6EC6CA",
-      description: "Boost engagement rates through targeted and personalized interactions."
-    },
-    {
-      title: "Code case conversion engagement and growth flow",
-      color: "#F7C873",
-      description: "Convert more leads into customers with optimized conversion strategies."
-    },
-    {
-      title: "Community growth",
-      color: "#B3C2D1",
-      description: "Build and nurture a thriving community around your brand."
-    }
-  ];
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFields(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const toggleCardExpansion = (index: number) => {
     setExpandedCards(prev => 
@@ -480,251 +190,8 @@ function App() {
     );
   };
 
-  const handleEmailResults = () => {
-    const subject = "Your Reddit DM Campaign Results";
-    const body = `Here are your Reddit DM campaign results:\n\n` +
-      `Product: ${fields.productName}\n\n` +
-      `Top Subreddits and Authors:\n` +
-      results.map(result => {
-        if (!result.display_name_prefixed) return '';
-        return `- ${result.display_name_prefixed}\n` +
-          `  Subscribers: ${result.subscribers?.toLocaleString() || 'N/A'}\n` +
-          `  Description: ${result.description || 'N/A'}\n\n` +
-          `  Top Authors:\n` +
-          (result.top_authors?.map(author => 
-            `    - ${author.author.replace('t2_', '')}\n` +
-            `      Top Post: ${author.top_post_title}\n` +
-            `      Profile: ${author.profile_url}\n`
-          ).join('\n') || 'No authors found') + '\n\n';
-      }).join('\n') +
-      `\nDM Template:\n` +
-      (results[results.length - 1]?.output ? 
-        `Subject: ${results[results.length - 1].output?.subject || 'No subject available'}\n\n` +
-        `${results[results.length - 1].output?.body || 'No message available'}\n` :
-        'No DM template available');
-
-    window.location.href = `mailto:${fields.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  };
-
-  const handleRedditDM = async () => {
-    if (!redditHandleInput.trim()) {
-      setRedditHandleError('Reddit handle is required');
-      return;
-    }
-
-    // Track DM attempt with user ID
-    track('Reddit DM Attempt', {
-      reddit_handle: redditHandleInput.trim(),
-      user_id: getUserId(),
-      timestamp: new Date().toISOString()
-    });
-
-    setIsSendingDM(true);
-    try {
-      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/sendRedditDM', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          custRedditHandle: redditHandleInput.trim(),
-          body: results[2]?.output?.body.replace("[Recipient's Reddit Handle]", redditHandleInput.trim()) || '',
-          subject: results[2]?.output?.subject || ''
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send Reddit DM');
-      }
-      
-      // Track successful DM with user ID
-      track('Reddit DM Sent', {
-        reddit_handle: redditHandleInput.trim(),
-        user_id: getUserId(),
-        timestamp: new Date().toISOString()
-      });
-
-      // Close the modal on success
-      setShowRedditModal(false);
-      setRedditHandleInput('');
-      setRedditHandleError('');
-    } catch (error) {
-      setError('Failed to send Reddit DM. Please try again.');
-      
-      // Track DM error with user ID
-      track('Reddit DM Error', {
-        reddit_handle: redditHandleInput.trim(),
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-        user_id: getUserId(),
-        timestamp: new Date().toISOString()
-      });
-    } finally {
-      setIsSendingDM(false);
-    }
-  };
-
-  // Track scroll to sections
-  const handleScrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    element?.scrollIntoView({ behavior: 'smooth' });
-    
-    // Track section scroll with user ID
-    track('Section Scroll', {
-      section: sectionId,
-      user_id: getUserId(),
-      timestamp: new Date().toISOString()
-    });
-  };
-
-  const handleWaitlistSubmit = async () => {
-    if (!waitlistEmail.trim()) {
-      setWaitlistEmailError('Email is required');
-      return;
-    }
-
-    setIsSubmittingWaitlist(true);
-    try {
-      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/joinWaitlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email_id: waitlistEmail.trim()
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to join waitlist');
-      }
-
-      // Track waitlist signup
-      track('Waitlist Signup', {
-        email: waitlistEmail.trim(),
-        user_id: getUserId(),
-        timestamp: new Date().toISOString()
-      });
-      
-      setWaitlistSuccess(true);
-      setWaitlistEmail('');
-      setWaitlistEmailError('');
-      setShowWaitlistModal(false);
-    } catch (error) {
-      setWaitlistEmailError('Failed to join waitlist. Please try again.');
-    } finally {
-      setIsSubmittingWaitlist(false);
-    }
-  };
-
-  const handleEmailSubmit = async () => {
-    if (!emailInput.trim()) {
-      setEmailError('Email is required');
-      return;
-    }
-
-    setIsSendingEmail(true);
-    try {
-      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/sendEmail', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: emailInput.trim(),
-          response: results,          
-          productName: fields.productName,
-          productUrl: fields.productUrl,
-          elevatorPitch: fields.elevatorPitch,
-          ask: fields.ask,
-          keywords: fields.keywords,
-          subreddit: fields.subreddit
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send email');
-      }
-
-      // Track email sent
-      track('Email Sent', {
-        email: emailInput.trim(),
-        user_id: getUserId(),
-        timestamp: new Date().toISOString()
-      });
-      
-      setShowEmailModal(false);
-      setEmailInput('');
-      setEmailError('');
-    } catch (error) {
-      setEmailError('Failed to send email. Please try again.');
-    } finally {
-      setIsSendingEmail(false);
-    }
-  };
-
-  const handleDeliverableChange = (field: string, value: string) => {
-    setEditedDeliverables(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        [field]: value
-      };
-    });
-  };
-
-  const handleWebsiteAnalysis = async () => {
-    // Track website analysis attempt
-    track('Website Analysis Attempt', {
-      product_name: fields.productName,
-      product_url: fields.productUrl,
-      user_id: getUserId(),
-      timestamp: new Date().toISOString()
-    });
-
-    setIsAnalyzing(true);
-    setAnalysisError(null);
-    
-    try {
-      // Ensure URL has https:// prefix
-      const productUrl = fields.productUrl.startsWith('http') 
-        ? fields.productUrl 
-        : `https://${fields.productUrl}`;
-
-      // Create AbortController for timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
-
-      const response = await fetch('https://n8n-ncsw48oo08gwc0okcwcg0c0c.194.195.92.250.sslip.io/webhook/generate_elevatorPitch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prod_url: productUrl,
-          prod_name: fields.productName
-        }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error('Failed to generate deliverables');
-      }
-
-      const data = await response.json();
-      setDeliverablesResponse(data.output);
-      setEditedDeliverables(data.output);
-    } catch (error) {
-      setAnalysisError('Something went wrong, please check if your website URL is correct?');
-      console.error('Error generating deliverables:', error);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
   const toggleSubreddit = (index: number) => {
-    setExpandedSubreddits(prev => 
+    setSelectedSubreddits(prev => 
       prev.includes(index) 
         ? prev.filter(i => i !== index)
         : [...prev, index]
@@ -732,266 +199,164 @@ function App() {
   };
 
   const handleDMChange = (field: 'subject' | 'body', value: string) => {
-    setEditedDM(prev => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        [field]: value
-      };
-    });
+    setDmContent(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleSendToLeads = async () => {
-    // Track send to leads attempt
-    track('Send to Leads Attempt', {
-      product_name: fields.productName,
-      total_leads: results.reduce((sum, result) => sum + (result.top_authors?.length || 0), 0),
-      user_id: getUserId(),
-      timestamp: new Date().toISOString()
-    });
-
-    if (!editedDM) return;
-    setShowPricingModal(true);
-  };
-
-  const features = [
-    {
-      title: "Automated Lead Generation",
-      description: "Find and target your ideal customers on Reddit automatically"
-    },
-    {
-      title: "Personalized DM Campaigns",
-      description: "Send customized messages to your target audience"
-    },
-    {
-      title: "Daily Automation",
-      description: "Set up recurring campaigns to reach new users daily"
-    },
-    {
-      title: "Analytics Dashboard",
-      description: "Track your campaign performance and engagement metrics"
-    },
-    {
-      title: "Unlimited Subreddits",
-      description: "Target users across any number of relevant subreddits"
-    },
-    {
-      title: "Priority Support",
-      description: "Get help from our team whenever you need it"
-    }
-  ];
-
-  const updateUserIdInDatabase = async (id: string) => {
-    try {
-      const response = await fetch('/api/update-user-id', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update user ID');
-      }
-
-      // Track successful user ID update
-      track('User ID Updated', {
-        user_id: getUserId(),
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error('Error updating user ID:', error);
+  const handleScrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
-
-  // Add effect to handle user ID update when user logs in
-  useEffect(() => {
-    if (auth?.user && results.length > 0 && results[0]?.id) {
-      updateUserIdInDatabase(results[0].id);
-    }
-  }, [auth?.user, results]);
 
   return (
-    <div className="ff-root">
-      <Clarity />
-      {/* Header */}
-      <header className="ff-header">
-        <div className="ff-logo">
-          <img src="/logo.png" alt="EMA Logo" width="200" height="162" />
-          {/* <span className="ff-brand">Reddit</span> */}
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50">
+      <Clarity />    
 
       {/* Hero Section */}
-      <section className="ff-hero">
-        <div className="ff-hero-content">
-          <div className="ff-hero-text">
-            <h1>Find & Private Message Your Ideal Customers on Reddit - <span className="ff-bold-red">Automatically</span></h1>
-            <p className="ff-hero-sub">Just give us your product url. We'll handle the rest:</p>
-            <ul className="ff-hero-features">
-              <li>🌐 Surface the right subreddits, worthy of your time investment</li>
-              <li>🎯 Find high-intent ICP users</li>
-              <li>✉️ Automate AI-personalized private messages on Reddit - hands-free</li>
-            </ul>
-            <div className="ff-hero-cta">
-              <button className="ff-cta-button" onClick={() => handleScrollToSection('reddit-dm-section')}>
-                Get My First Reddit Leads (Free)
-              </button>              
-              <p className="ff-cta-note">Built for busy founders. See it in action before you commit.</p>
-              <a href="#how-it-works" className="ff-how-it-works-link" onClick={(e) => {
+      <section className="bg-white py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            Find & Private Message Your Ideal Customers on Reddit -{' '}
+            <span className="text-red-600">Automatically</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Just give us your product url. We'll handle the rest:
+          </p>
+          <ul className="text-lg text-gray-700 space-y-2 mb-8">
+            <li className="flex items-center justify-center space-x-2">
+              <span>🌐</span>
+              <span>Surface the right subreddits, worthy of your time investment</span>
+            </li>
+            <li className="flex items-center justify-center space-x-2">
+              <span>🎯</span>
+              <span>Find high-intent ICP users</span>
+            </li>
+            <li className="flex items-center justify-center space-x-2">
+              <span>✉️</span>
+              <span>Automate AI-personalized private messages on Reddit - hands-free</span>
+            </li>
+          </ul>
+          <div className="space-y-4">
+            <Button 
+              size="lg" 
+              variant="reddit"
+              onClick={() => handleScrollToSection('reddit-dm-section')}
+            >
+              Get My First Reddit Leads (Free)
+            </Button>
+            <p className="text-sm text-gray-500">
+              Built for busy founders. See it in action before you commit.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={(e) => {
                 e.preventDefault();
                 handleScrollToSection('how-it-works');
-              }}>
-                How it Works
-              </a>
+              }}
+            >
+              How it Works
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Reddit DM Form Section */}
+      <RedditDMSection showResults={true} />
+
+      {/* How it Works Section */}
+      <section id="how-it-works" className="bg-gray-50 py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">How It Works</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                1
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Tell us about your product</h3>
+              <p className="text-gray-600">
+                Write a 1–2 sentence elevator pitch so we understand what you're building. Add any keywords or communities already of interest
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                2
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Hit Submit</h3>
+              <p className="text-gray-600">
+                List the communities where your users hang out (e.g. r/startups, r/ai, r/marketing).
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                3
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Get what is promised</h3>
+              <ul className="text-gray-600 text-left space-y-1">
+                <li>• A list of high-fit Reddit users from selected subreddits</li>
+                <li>• Top subreddits worth your marketing focus</li>
+                <li>• Personalized DM copy tailored to your product and ICP</li>
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Reddit DM Form Section (Reusable) */}
-      <RedditDMSection showResults={true}/>
-      {/* How it Works Section */}
-      <section id="how-it-works" className="ff-how">
-        <div className="ff-how-content">
-          <h2>How It Works</h2>
-          
-          <div className="ff-how-steps">
-            <div className="ff-how-step">
-              <div className="ff-step-number">1</div>
-              <div className="ff-step-content">
-                <h3>Tell us about your product</h3>
-                <p>Write a 1–2 sentence elevator pitch so we understand what you're building. Add any keywords or communities already of interest</p>
-              </div>
-            </div>
-
-            <div className="ff-how-step">
-              <div className="ff-step-number">2</div>
-              <div className="ff-step-content">
-                <h3>Hit Submit</h3>
-                <p>List the communities where your users hang out (e.g. r/startups, r/ai, r/marketing).</p>
-              </div>
-            </div>
-
-            <div className="ff-how-step">
-              <div className="ff-step-number">3</div>
-              <div className="ff-step-content">
-                <h3>Get what is promised</h3>
-                <ul className="ff-step-list">
-                  <li>A list of high-fit Reddit users from selected subreddits</li>
-                  <li>Top subreddits worth your marketing focus</li>
-                  <li>Personalized DM copy tailored to your product and ICP. You can even send it your reddit handle and test it.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>      
-
       {/* Schedule Modal */}
-      {showScheduleModal && (
-        <div className="ff-modal-overlay">
-          <div className="ff-modal">
-            <h3>Schedule Automated DMs</h3>
-            <p className="ff-modal-description">
-              Would you like to set up automated daily DMs to new relevant users? This will help you continuously engage with your target audience.
-            </p>
-            <div className="ff-modal-actions">
-              <button
-                className="ff-action-btn schedule-btn"
-                onClick={() => {
-                  // Track schedule DMs attempt
-                  track('Schedule DMs Attempt', {
-                    product_name: fields.productName,
-                    user_id: getUserId(),
-                    timestamp: new Date().toISOString()
-                  });
-                  // Handle scheduling logic
-                  setShowScheduleModal(false);
-                }}
-              >
-                <span className="ff-action-icon">📅</span>
-                Schedule Daily DMs
-              </button>
-              <button
-                className="ff-action-btn cancel-btn"
-                onClick={() => {
-                  // Track schedule DMs cancellation
-                  track('Schedule DMs Cancelled', {
-                    product_name: fields.productName,
-                    user_id: getUserId(),
-                    timestamp: new Date().toISOString()
-                  });
-                  setShowScheduleModal(false);
-                }}
-              >
-                Not Now
-              </button>
-            </div>
+      <Modal 
+        isOpen={showScheduleModal} 
+        onClose={() => setShowScheduleModal(false)}
+        title="Schedule Automated DMs"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Would you like to set up automated daily DMs to new relevant users? This will help you continuously engage with your target audience.
+          </p>
+          <div className="flex space-x-3">
+            <Button 
+              variant="default"
+              onClick={() => {
+                track('Schedule DMs Attempt', {
+                  product_name: fields.productName,
+                  user_id: getUserId(),
+                  timestamp: new Date().toISOString()
+                });
+                setShowScheduleModal(false);
+              }}
+            >
+              📅 Schedule Daily DMs
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                track('Schedule DMs Cancelled', {
+                  product_name: fields.productName,
+                  user_id: getUserId(),
+                  timestamp: new Date().toISOString()
+                });
+                setShowScheduleModal(false);
+              }}
+            >
+              Not Now
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* Pricing Modal */}
       <PricingModal 
         isOpen={showPricingModal} 
         onClose={() => setShowPricingModal(false)} 
       />
-      {/* {showPricingModal && (
-        <div className="ff-modal-overlay">
-          <div className="ff-pricing-modal">
-            <button 
-              className="ff-close-button"
-              onClick={() => setShowPricingModal(false)}
-            >
-              ×
-            </button>
-            <div className="ff-pricing-header">
-              <h2>Start Growing Your Business</h2>
-              <p className="ff-pricing-subtitle">Get access to all features and start reaching your ideal customers today</p>
-            </div>
-            
-            <div className="ff-pricing-card">
-              <div className="ff-pricing-badge">Most Popular</div>
-              <div className="ff-pricing-amount">
-                <span className="ff-currency">$</span>
-                <span className="ff-price">9.99</span>
-                <span className="ff-period">/month</span>
-              </div>
-              <ul className="ff-features-list">
-                {features.map((feature, index) => (
-                  <li key={index}>
-                    <span className="ff-feature-icon">✓</span>
-                    <div className="ff-feature-content">
-                      <h4>{feature.title}</h4>
-                      <p>{feature.description}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <button 
-                className="ff-action-btn subscribe-btn"
-                onClick={() => {
-                  // Track subscription attempt
-                  track('Subscription Attempt', {
-                    product_name: fields.productName,
-                    plan: 'monthly',
-                    price: 9.99,
-                    user_id: getUserId(),
-                    timestamp: new Date().toISOString()
-                  });
-                  // Handle subscription logic
-                  setShowPricingModal(false);
-                }}
-              >
-                Subscribe Now
-              </button>
-              <p className="ff-pricing-note">Cancel anytime. No hidden fees.</p>
-            </div>
-          </div>
-        </div>
-      )} */}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

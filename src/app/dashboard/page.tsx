@@ -3,19 +3,27 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/firebase/AuthContext';
 import { setCookie } from 'cookies-next';
-import './dashboard.css';
-import ProjectDetail from '@/components/ProjectDetail';
 import { useRouter } from 'next/navigation';
 import { createProject } from '@/utils/db';
 import { useRef } from 'react';
 import { RedditDMSection } from '@/components/RedditDMSection';
+import { 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle,
+  Modal,
+  ProjectCard,
+  Footer
+} from '@/components/ui';
 
 interface Project {
   id: string;
   productname: string;
   url: string;
   reddit_connected?: boolean;
-  reddit_username?: string; // Add reddit_username to Project
+  reddit_username?: string;
 }
 
 export default function Dashboard() {
@@ -99,151 +107,110 @@ export default function Dashboard() {
     window.location.href = authUrl;
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      try {
+        const res = await fetch(`/api/projects/${projectId}`, { method: 'DELETE' });
+        if (res.ok) {
+          setProjects((prev) => prev.filter((p) => p.id !== projectId));
+        } else {
+          alert('Failed to delete project');
+        }
+      } catch (err) {
+        alert('Failed to delete project');
+      }
+    }
+  };
+
   if (!auth) {
     return (
-      <div className="loading-spinner">
-        <div></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
 
   if (!auth.user) {
     return (
-      <div className="dashboard-container">
-        <div className="dashboard-content">
-          <div className="dashboard-card">
-            <div className="section-header">
-              <h2 className="section-title">Welcome to Reddit DM Scheduler</h2>
-              <p className="text-gray-600">Sign in to get started</p>
-            </div>
-            <button
-              onClick={() => auth.signInWithGoogle()}
-              className="reddit-connect-button"
-            >
-              Sign in with Google
-            </button>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-1 p-4">
+          <div className="max-w-2xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Welcome to Reddit DM Scheduler</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">Sign in to get started</p>
+                <Button onClick={() => auth.signInWithGoogle()}>
+                  Sign in with Google
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-content">
-        <div className="dashboard-card">
-          <div className="section-header">
-            <h2 className="section-title">Your Projects</h2>
-            <button
-              className="reddit-connect-button"
-              style={{ marginLeft: 'auto' }}
-              onClick={() => setShowAddModal(true)}
-            >
-              + Add a project
-            </button>
-          </div>
-          {showAddModal && (
-            <div className="ff-modal-overlay">
-              <div className="ff-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
-                <div className="ff-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h2>Add a Project</h2>
-                  <button className="ff-modal-close" onClick={() => setShowAddModal(false)}>&times;</button>
-                </div>
-                {createError && <div style={{ color: 'red', marginBottom: 8 }}>{createError}</div>}
-                <RedditDMSection
-                  initialFields={{}}
-                  mode="create"
-                  // onSubmit={handleRedditDMCreate}
-                  showResults={false}
-                />
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 p-4">
+        <div className="max-w-7xl mx-auto">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Your Projects</CardTitle>
+                <Button onClick={() => setShowAddModal(true)}>
+                  + Add a project
+                </Button>
               </div>
-            </div>
-          )}
-          {loading ? (
-            <div className="loading-spinner">
-              <div></div>
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="empty-state">
-              <p>No projects found. Create your first project to get started.</p>
-            </div>
-          ) : (
-            <div className="project-grid">
-              {projects.map((project) => (
-                <div
-                  key={project.id}
-                  className="project-card"
-                  onClick={() => router.push(`/project/${project.id}`)}
-                  style={{ position: 'relative' }}
+            </CardHeader>
+            <CardContent>
+              {showAddModal && (
+                <Modal
+                  isOpen={showAddModal}
+                  onClose={() => setShowAddModal(false)}
+                  title="Add a Project"
+                  size="lg"
                 >
-                  {/* Delete Project Bin Icon */}
-                  <button
-                    onClick={async (e) => {
-                      e.stopPropagation();
-                      if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-                        try {
-                          const res = await fetch(`/api/projects/${project.id}`, { method: 'DELETE' });
-                          if (res.ok) {
-                            setProjects((prev) => prev.filter((p) => p.id !== project.id));
-                          } else {
-                            alert('Failed to delete project');
-                          }
-                        } catch (err) {
-                          alert('Failed to delete project');
-                        }
-                      }
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: 8,
-                      right: 8,
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      zIndex: 2,
-                    }}
-                    title="Delete Project"
-                  >
-                    {/* Simpler trash can SVG icon */}
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="7" y="3" width="6" height="2" rx="1" fill="#ff4500"/>
-                      <rect x="4" y="6" width="12" height="2" rx="1" fill="#ff4500"/>
-                      <rect x="5" y="8" width="10" height="8" rx="2" fill="#ff4500"/>
-                      <rect x="8" y="10" width="1.2" height="4" rx="0.6" fill="#fff"/>
-                      <rect x="10.8" y="10" width="1.2" height="4" rx="0.6" fill="#fff"/>
-                    </svg>
-                  </button>
-                  <h3>{project.productname}</h3>
-                  <a
-                    href={project.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {project.url}
-                  </a>
-                  {/* Show Reddit username if available */}
-                  {project.reddit_username && (
-                    <div style={{ margin: '8px 0', color: 'gray', fontWeight: 500 }}>
-                      Sending as: u/{project.reddit_username}
-                    </div>
+                  {createError && (
+                    <div className="text-destructive mb-4">{createError}</div>
                   )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleConnectToReddit(project.id);
-                    }}
-                    className={`reddit-connect-button ${project.reddit_connected ? 'connected' : ''}`}
-                  >
-                    {project.reddit_connected ? 'Reconnect Reddit Account' : 'Connect Reddit Account'}
-                  </button>
+                  <RedditDMSection
+                    initialFields={{}}
+                    mode="create"
+                    showResults={false}
+                  />
+                </Modal>
+              )}
+              
+              {loading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
-              ))}
-            </div>
-          )}
+              ) : projects.length === 0 ? (
+                <div className="text-center py-8 text-gray-600">
+                  <p>No projects found. Create your first project to get started.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {projects.map((project) => (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      onDelete={handleDeleteProject}
+                      onConnectReddit={handleConnectToReddit}
+                      onClick={(projectId) => router.push(`/project/${projectId}`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 } 
