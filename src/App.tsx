@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea, Modal, Footer } from '@/components/ui';
 import { RedditDMSection } from '@/components/RedditDMSection';
 import { PricingModal } from '@/components/PricingModal';
@@ -38,6 +39,53 @@ interface ApiResponse {
   top_authors?: TopAuthor[];
   output?: Output;
 }
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 0.6,
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut" as const
+    }
+  }
+};
+
+const heroVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut" as const
+    }
+  }
+};
+
+const floatingVariants = {
+  animate: {
+    y: [-10, 10, -10],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut" as const
+    }
+  }
+};
 
 function App() {
   const [fields, setFields] = useState({
@@ -79,18 +127,25 @@ function App() {
     }, []);
 
     return (
-      <div className="w-full max-w-md mx-auto">
+      <motion.div 
+        className="w-full max-w-md mx-auto"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="mb-2 flex justify-between text-sm text-gray-600">
           <span>Analyzing your product...</span>
           <span>{Math.round(progress)}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${progress}%` }}
-          ></div>
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <motion.div 
+            className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          />
         </div>
-      </div>
+      </motion.div>
     );
   };
 
@@ -213,54 +268,157 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       <Clarity />    
 
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, -80, 0],
+            y: [0, 60, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute bottom-40 left-1/4 w-64 h-64 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full blur-3xl"
+          animate={{
+            x: [0, 60, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      </div>
+
       {/* Hero Section */}
-      <section className="bg-white py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+      <section className="relative bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 py-20 overflow-hidden">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <motion.h1 
+            className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent"
+            variants={heroVariants}
+            initial="hidden"
+            animate="visible"
+          >
             Find & Private Message Your Ideal Customers on Reddit -{' '}
-            <span className="text-red-600">Automatically</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
+            <span className="bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">Automatically</span>
+          </motion.h1>
+          
+          <motion.p 
+            className="text-xl text-gray-600 mb-8"
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+          >
             Just give us your product url. We'll handle the rest:
-          </p>
-          <ul className="text-lg text-gray-700 space-y-2 mb-8">
-            <li className="flex items-center justify-center space-x-2">
-              <span>🌐</span>
+          </motion.p>
+          
+          <motion.ul 
+            className="text-lg text-gray-700 space-y-3 mb-10"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.li 
+              className="flex items-center justify-center space-x-3"
+              variants={itemVariants}
+            >
+              <motion.span 
+                className="text-2xl"
+                variants={floatingVariants}
+                // animate="animate"
+              >
+                🌐
+              </motion.span>
               <span>Surface the right subreddits, worthy of your time investment</span>
-            </li>
-            <li className="flex items-center justify-center space-x-2">
-              <span>🎯</span>
+            </motion.li>
+            <motion.li 
+              className="flex items-center justify-center space-x-3"
+              variants={itemVariants}
+            >
+              <motion.span 
+                className="text-2xl"
+                variants={floatingVariants}
+                // animate="animate"
+                style={{ animationDelay: "0.5s" }}
+              >
+                🎯
+              </motion.span>
               <span>Find high-intent ICP users</span>
-            </li>
-            <li className="flex items-center justify-center space-x-2">
-              <span>✉️</span>
+            </motion.li>
+            <motion.li 
+              className="flex items-center justify-center space-x-3"
+              variants={itemVariants}
+            >
+              <motion.span 
+                className="text-2xl"
+                variants={floatingVariants}
+                // animate="animate"
+                style={{ animationDelay: "1s" }}
+              >
+                ✉️
+              </motion.span>
               <span>Automate AI-personalized private messages on Reddit - hands-free</span>
-            </li>
-          </ul>
-          <div className="space-y-4">
-            <Button 
-              size="lg" 
-              variant="reddit"
-              onClick={() => handleScrollToSection('reddit-dm-section')}
+            </motion.li>
+          </motion.ul>
+          
+          <motion.div 
+            className="space-y-4"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={itemVariants}>
+              <Button 
+                size="lg" 
+                variant="reddit"
+                onClick={() => handleScrollToSection('reddit-dm-section')}
+                className="transform hover:scale-105 transition-transform duration-200"
+              >
+                Get My First Reddit Leads (Free)
+              </Button>
+            </motion.div>
+            
+            <motion.p 
+              className="text-sm text-gray-500"
+              variants={itemVariants}
             >
-              Get My First Reddit Leads (Free)
-            </Button>
-            <p className="text-sm text-gray-500">
               Built for busy founders. See it in action before you commit.
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={(e) => {
-                e.preventDefault();
-                handleScrollToSection('how-it-works');
-              }}
-            >
-              How it Works
-            </Button>
-          </div>
+            </motion.p>
+            
+            <motion.div variants={itemVariants}>
+              <Button 
+                variant="outline" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleScrollToSection('how-it-works');
+                }}
+                className="transform hover:scale-105 transition-transform duration-200"
+              >
+                How it Works
+              </Button>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
@@ -268,43 +426,93 @@ function App() {
       <RedditDMSection showResults={true} />
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="bg-gray-50 py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">How It Works</h2>
+      <section id="how-it-works" className="relative bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-center text-gray-900 mb-16 bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            How It Works
+          </motion.h2>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+          <motion.div 
+            className="grid md:grid-cols-3 gap-8"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div 
+              className="text-center group"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6 shadow-lg"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
                 1
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Tell us about your product</h3>
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Tell us about your product</h3>
               <p className="text-gray-600">
                 Write a 1–2 sentence elevator pitch so we understand what you're building. Add any keywords or communities already of interest
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+            <motion.div 
+              className="text-center group"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6 shadow-lg"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
                 2
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Hit Submit</h3>
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Hit Submit</h3>
               <p className="text-gray-600">
                 List the communities where your users hang out (e.g. r/startups, r/ai, r/marketing).
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+            <motion.div 
+              className="text-center group"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="w-16 h-16 bg-gradient-to-r from-pink-600 to-red-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6 shadow-lg"
+                whileHover={{ rotate: 360 }}
+                transition={{ duration: 0.6 }}
+              >
                 3
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Get what is promised</h3>
-              <ul className="text-gray-600 text-left space-y-1">
-                <li>• A list of high-fit Reddit users from selected subreddits</li>
-                <li>• Top subreddits worth your marketing focus</li>
-                <li>• Personalized DM copy tailored to your product and ICP</li>
+              </motion.div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Get what is promised</h3>
+              <ul className="text-gray-600 text-left space-y-2">
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                  A list of high-fit Reddit users from selected subreddits
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                  Top subreddits worth your marketing focus
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                  Personalized DM copy tailored to your product and ICP
+                </li>
               </ul>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
