@@ -203,6 +203,16 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
     });
   };
 
+  const handleSendToLeads = () => {
+    if (!auth?.user) {
+      // Show login popup by triggering sign in
+      auth?.signInWithGoogle();
+    } else {
+      // User is signed in, redirect to dashboard
+      router.push('/dashboard');
+    }
+  };
+
   const ProgressLoader = () => {
     if (currentStep === -1) return null;
 
@@ -458,6 +468,7 @@ export const RedditDMSection: React.FC<RedditDMSectionProps & { onClose?: () => 
                   </Button>
                   <Button 
                     variant="reddit"
+                    onClick={handleSendToLeads}
                     className="transition-all duration-200 hover:scale-105"
                   >
                     Send to Leads
