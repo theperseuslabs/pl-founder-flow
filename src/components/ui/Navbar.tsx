@@ -66,6 +66,13 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
           {/* User Section */}
           <div className="flex items-center space-x-4">
+          <Button
+                variant="ghost"
+                onClick={() => window.location.href = 'https://easymarketingautomations.com/blog/'}                
+                className="transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+              >
+                Blog
+              </Button>
             {auth.user && (
               <Button
                 variant="ghost"
