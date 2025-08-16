@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import RedditPostForm from './RedditPostForm';
 import { ProjectDetails, SchedulerConfig, ProjectDetailProps } from '../types/project';
 import { Slider } from '@mui/material';
 import { Switch } from '@mui/material';
@@ -344,6 +345,9 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
                  </div>
               </CardContent>
             </Card>
+
+            {/* Reddit Post Form */}
+            <RedditPostForm projectId={projectId} />
 
             {/* Send History */}
             <Card>
