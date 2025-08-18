@@ -461,7 +461,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
                         const randomState = Math.random().toString(36).substring(2, 15);
                         document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
                         document.cookie = `project_id=${projectId}; max-age=600; path=/`;
-                        const scope = 'identity privatemessages submit'.replace(' ', ',');
+                        const scope = 'identity privatemessages'.replace(' ', ',');
                         const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
                         window.location.href = authUrl;
                       }}
@@ -493,7 +493,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = ({ projectId, onClose }) => 
                         const randomState = Math.random().toString(36).substring(2, 15);
                         document.cookie = `reddit_oauth_state=${randomState}; max-age=600; path=/`;
                         document.cookie = `project_id=${projectId}; max-age=600; path=/`;
-                        const scope = 'identity privatemessages submit'.replace(' ', ',');
+                        const scope = 'identity privatemessages'.replace(' ', ',');
                         const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${clientId}&response_type=code&state=${randomState}&redirect_uri=${encodeURIComponent(redirectUri)}&duration=permanent&scope=${encodeURIComponent(scope)}`;
                         window.location.href = authUrl;
                       }}

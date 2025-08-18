@@ -40,8 +40,7 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
       const response = await fetch('https://ema-dm-scheduler-641923045318.us-central1.run.app/create_reddit_post', {
         method: 'POST',
         headers: {
-          'X-Token': 'ABC',
-          'Access-Control-Allow-Origin': 'true'
+          'X-Token': '64ff35d08f4724dc0c1e0be8cdc6c46faaf004f545dde1c429fd4c8ea576afee',
         },
         body: formData,
       });
