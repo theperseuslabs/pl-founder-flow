@@ -41,7 +41,8 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
         method: 'POST',
         headers: {
           'X-Token': 'ABC',
-          'Access-Control-Allow-Origin': 'true'
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'multipart/form-data'
         },
         body: formData,
       });
