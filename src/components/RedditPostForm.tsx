@@ -1,9 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input, Textarea, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
-import { PaperAirplaneIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon, LinkIcon, ClockIcon, CheckCircleIcon, XCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 interface RedditPostFormProps {
   projectId: string;
+}
+
+interface RedditPostHistory {
+  id: string;
+  project_id: string;
+  interaction_type: string;
+  from: string;
+  to: string;
+  created_date: string;
+  subject: string;
+  message: string;
+  status_display: string;
+  url: string;
+}
+
+interface RedditPostStats {
+  total_posts: number;
+  successful_posts: number;
+  failed_posts: number;
+  pending_posts: number;
+  processing_posts: number;
+  last_post_date: string | null;
 }
 
 const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
@@ -14,6 +36,9 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ message: string; redditLink: string } | null>(null);
+  const [postHistory, setPostHistory] = useState<RedditPostHistory[]>([]);
+  const [postStats, setPostStats] = useState<RedditPostStats | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const resetForm = () => {
     setSubreddit('');
@@ -22,6 +47,57 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
     setImage(null);
     setError(null);
     setSuccess(null);
+  };
+
+  const fetchRedditPostHistory = async () => {
+    if (!projectId) return;
+    
+    setHistoryLoading(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/send-history?type=reddit_post`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch Reddit post history');
+      }
+      
+      const data = await response.json();
+      setPostHistory(data.history || []);
+      setPostStats(data.stats || null);
+    } catch (err) {
+      console.error('Error fetching Reddit post history:', err);
+      setError('Failed to load Reddit post history');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Fetch Reddit post history on component mount and when projectId changes
+  useEffect(() => {
+    fetchRedditPostHistory();
+  }, [projectId]);
+
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'posted successfully':
+        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+      case 'failed':
+        return <XCircleIcon className="h-5 w-5 text-red-500" />;
+      case 'pending':
+        return <ClockIcon className="h-5 w-5 text-yellow-500" />;
+      case 'processing':
+        return <ExclamationTriangleIcon className="h-5 w-5 text-blue-500" />;
+      default:
+        return <ClockIcon className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,7 +208,7 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
       imageSize: image ? `${(image.size / 1024 / 1024).toFixed(2)} MB` : 'N/A'
     });
 
-      const response = await fetch('http://localhost:8080', {
+      const response = await fetch('https://ema-dm-scheduler-641923045318.us-central1.run.app/create_reddit_post', {
         method: 'POST',
         headers: {
           'X-Token': 'ABC',
@@ -168,6 +244,9 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
         setText('');
         setImage(null);
         setError(null);
+        
+        // Refresh the Reddit post history to show the new post
+        fetchRedditPostHistory();
       } else {
         setError(result.message || 'Failed to create Reddit post.');
       }
@@ -312,9 +391,200 @@ const RedditPostForm: React.FC<RedditPostFormProps> = ({ projectId }) => {
               >
                 Create Another Post
               </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={fetchRedditPostHistory}
+                className="text-sm"
+              >
+                Refresh History
+              </Button>
             </div>
           </div>
         )}
+
+        {/* Reddit Post History Section */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Reddit Post History</h3>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={fetchRedditPostHistory}
+              disabled={historyLoading}
+              className="text-sm"
+            >
+              {historyLoading ? 'Refreshing...' : 'Refresh'}
+            </Button>
+          </div>
+
+          {/* Statistics Cards */}
+          {postStats && (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="text-2xl font-bold text-blue-600">{postStats.total_posts}</div>
+                <div className="text-sm text-blue-700">Total Posts</div>
+              </div>
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <div className="text-2xl font-bold text-green-600">{postStats.successful_posts}</div>
+                <div className="text-sm text-green-700">Successful</div>
+              </div>
+              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                <div className="text-2xl font-bold text-yellow-600">{postStats.pending_posts}</div>
+                <div className="text-sm text-yellow-700">Pending</div>
+              </div>
+              <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+                <div className="text-2xl font-bold text-red-600">{postStats.failed_posts}</div>
+                <div className="text-sm text-red-700">Failed</div>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <div className="text-2xl font-bold text-blue-600">{postStats.processing_posts}</div>
+                <div className="text-sm text-blue-700">Processing</div>
+              </div>
+            </div>
+          )}
+
+          {/* Latest Successful Post Link */}
+          {postHistory.length > 0 && postHistory.find(post => post.url && post.status_display.toLowerCase() === 'posted successfully') && (
+            <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium text-orange-800 mb-1">Latest Successful Post</h4>
+                  <p className="text-xs text-orange-600">Click below to view your most recent Reddit post</p>
+                </div>
+                <LinkIcon className="h-5 w-5 text-orange-500" />
+              </div>
+              <div className="mt-2">
+                {(() => {
+                  const latestSuccessfulPost = postHistory.find(post => 
+                    post.url && post.status_display.toLowerCase() === 'posted successfully'
+                  );
+                  return latestSuccessfulPost ? (
+                    <a 
+                      href={latestSuccessfulPost.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm text-orange-700 hover:text-orange-800 font-medium underline hover:no-underline transition-colors duration-200"
+                    >
+                      <LinkIcon className="h-4 w-4 mr-1" />
+                      {latestSuccessfulPost.subject || 'View Latest Post'}
+                    </a>
+                  ) : null;
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* History List */}
+          {historyLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Loading history...</span>
+            </div>
+          ) : postHistory.length > 0 ? (
+            <div className="space-y-4">
+              {postHistory.map((post) => (
+                <div key={post.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        {getStatusIcon(post.status_display)}
+                        <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                          post.status_display.toLowerCase() === 'posted successfully' 
+                            ? 'bg-green-100 text-green-800'
+                            : post.status_display.toLowerCase() === 'failed'
+                            ? 'bg-red-100 text-red-800'
+                            : post.status_display.toLowerCase() === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {post.status_display}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {formatDate(post.created_date)}
+                        </span>
+                        
+                        {/* Reddit URL Badge for Successful Posts */}
+                        {post.url && post.status_display.toLowerCase() === 'posted successfully' && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                            <LinkIcon className="h-3 w-3 mr-1" />
+                            Live
+                          </span>
+                        )}
+                      </div>
+                      
+                      <h4 className="font-medium text-gray-900 mb-1 truncate">
+                        {post.subject || 'No Title'}
+                      </h4>
+                      
+                      {/* Reddit URL Display */}
+                      {post.url && (
+                        <div className="mb-2">
+                          <a 
+                            href={post.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-xs text-orange-600 hover:text-orange-700 font-medium"
+                          >
+                            <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clipRule="evenodd" />
+                            </svg>
+                            {post.url}
+                          </a>
+                        </div>
+                      )}
+                      
+                      {post.message && (
+                        <p className="text-sm text-gray-600 mb-2 overflow-hidden text-ellipsis" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                          {post.message}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span>ID: {post.id}</span>
+                        {post.to && <span>To: {post.to}</span>}
+                      </div>
+                      
+                      {/* Reddit Post URL Link */}
+                      {post.url && (
+                        <div className="mt-2 flex items-center space-x-3">
+                          <a 
+                            href={post.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-sm text-orange-600 hover:text-orange-700 underline hover:no-underline transition-colors duration-200"
+                          >
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                            View on Reddit
+                          </a>
+                          
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(post.url);
+                              // You could add a toast notification here
+                            }}
+                            className="inline-flex items-center text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                            title="Copy URL to clipboard"
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <PaperAirplaneIcon className="h-12 w-12 mx-auto text-gray-300 mb-2" />
+              <p>No Reddit posts found for this project.</p>
+              <p className="text-sm">Create your first post above to get started!</p>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
