@@ -23,7 +23,12 @@ module.exports = {
         },
       },
       fontFamily: {
-        jost: ["Jost", "sans-serif"],
+        sans: ["var(--font-roboto-condensed)", "system-ui", "sans-serif"],
+        "roboto-condensed": [
+          "var(--font-roboto-condensed)",
+          "system-ui",
+          "sans-serif",
+        ],
       },
       borderRadius: {
         lg: "var(--radius)",

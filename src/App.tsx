@@ -321,38 +321,38 @@ function App() {
       </div>
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 py-20 overflow-hidden">
+      <section className="relative mesh-gradient py-6 overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-left relative z-10">
           <motion.h1
-            className="text-gray-900 mb-6"
+            className="text-gray-800 mb-6"
             variants={heroVariants}
             initial="hidden"
             animate="visible"
             style={{
-              fontFamily: "Jost, sans-serif",
-              fontWeight: 800,
-              fontSize: "24px",
+              fontWeight: 900,
+              fontSize: "32px",
               lineHeight: "100%",
               letterSpacing: "0px",
               textAlign: "left",
             }}
           >
-            Reddit Marketing. <br />
+            Reddit Marketing.
+            <br />
             Solved.
           </motion.h1>
 
           <motion.p
-            className="text-xl text-gray-600 mb-8 font-jost"
+            className="text-l text-gray-700 mb-8"
             variants={itemVariants}
             initial="hidden"
             animate="visible"
-            style={{ fontFamily: "Jost, sans-serif", textAlign: "left" }}
+            style={{ textAlign: "left" }}
           >
             Just paste your product's URL.{" "}
-            <span className="text-red-600 font-semibold">EMA</span>, our AI,
+            <span className="text-red-700 font-semibold">EMA</span>, our AI,
             finds your customers and top subreddits, starts the conversations,
             and builds meaningful engagement.{" "}
-            <span className="text-blue-600 font-semibold">
+            <span className="text-blue-800 font-semibold">
               All while you are in control.
             </span>
           </motion.p>
@@ -411,7 +411,7 @@ function App() {
       />
 
       {/* How It Works Section */}
-      <section className="bg-black from-gray-900 via-purple-900 to-gray-900 py-20 relative overflow-hidden">
+      <section className="bg-black from-gray-900 via-purple-900 to-gray-900 py-6 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,#8b5cf6_0%,transparent_50%)]"></div>

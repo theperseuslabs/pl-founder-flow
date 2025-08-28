@@ -4,9 +4,8 @@
 
 /* Custom placeholder styling for form inputs */
 .form-input-custom::placeholder {
-  font-family: 'Jost', sans-serif;
   font-weight: 400;
-  font-style: italic;
+  font-style: normal;
   font-size: 14px;
   line-height: 22px;
   letter-spacing: -0.41px;
@@ -15,10 +14,38 @@
 @layer base {
   body {
     @apply bg-white text-gray-900;
-    font-family: 'Jost', sans-serif;
   }
   
   * {
     text-align: left;
   }
+}
+
+/* Mesh Gradient Classes */
+.mesh-gradient {
+  background: linear-gradient(135deg, 
+    rgba(255, 126, 179, 0.2) 0%, 
+    rgba(255, 117, 140, 0.2) 20%, 
+    rgba(142, 68, 173, 0.2) 40%, 
+    rgba(52, 152, 219, 0.2) 60%, 
+    rgba(255, 154, 86, 0.2) 80%, 
+    rgba(255, 123, 123, 0.2) 100%);
+  background-size: 400% 400%;
+  animation: meshGradientShift 15s ease infinite;
+}
+
+.mesh-gradient-static {
+  background: linear-gradient(135deg, 
+    rgba(255, 126, 179, 0.2) 0%, 
+    rgba(255, 117, 140, 0.2) 20%, 
+    rgba(142, 68, 173, 0.2) 40%, 
+    rgba(52, 152, 219, 0.2) 60%, 
+    rgba(255, 154, 86, 0.2) 80%, 
+    rgba(255, 123, 123, 0.2) 100%);
+}
+
+@keyframes meshGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 } 

@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Jost } from "next/font/google";
+import { Roboto_Condensed } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/firebase/AuthContext";
 import { Navbar } from "@/components/ui/Navbar";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] });
-const jost = Jost({
+const robotoCondensed = Roboto_Condensed({
   subsets: ["latin"],
-  weight: ["600", "800"],
+  weight: ["300", "400", "500", "600", "700", "800"],
   style: ["normal"],
+  variable: "--font-roboto-condensed",
 });
 
 export const metadata: Metadata = {
@@ -35,12 +35,11 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={jost.className}
+        className={`${robotoCondensed.variable} font-sans`}
         style={{
           width: "100%",
           margin: 0,
           padding: 0,
-          fontFamily: "Jost, sans-serif",
         }}
       >
         <AuthProvider>

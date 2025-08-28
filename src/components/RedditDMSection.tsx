@@ -279,20 +279,20 @@ export const RedditDMSection: React.FC<
   };
 
   return (
-    <section id="reddit-dm-section" className="bg-white py-16">
+    <section id="reddit-dm-section" className="bg-white py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <div className="text-left mb-4">
+          <h2 className="text-3xl font-bold text-gray-900">
             Experience The MAGIC!
           </h2>
         </div>
 
-        <Card>
-          <CardContent>
+        <Card className="border-0 shadow-none">
+          <CardContent className="px-0">
             {loading ? (
               <ProgressLoader />
             ) : error ? (
-              <div className="text-center space-y-4">
+              <div className="text-left space-y-4">
                 <div className="text-red-600 bg-red-50 p-4 rounded-lg">
                   <p className="font-medium">Error: {error}</p>
                 </div>
@@ -323,11 +323,11 @@ export const RedditDMSection: React.FC<
                         return (
                           <div
                             key="signin-prompt"
-                            className="text-center p-6 border-2 border-dashed border-gray-300 rounded-lg"
+                            className="text-left p-6 border-2 border-dashed border-gray-300 rounded-lg"
                           >
                             <Button
                               onClick={() => auth?.signInWithGoogle()}
-                              className="flex items-center space-x-2 mx-auto"
+                              className="flex items-center space-x-2"
                             >
                               <img
                                 src="/google-icon.svg"
@@ -531,8 +531,8 @@ export const RedditDMSection: React.FC<
                                 Loading...
                               </p>
                               {!auth?.user && (
-                                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-center">
-                                  <div className="text-center">
+                                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-md flex items-center justify-start pl-4">
+                                  <div className="text-left">
                                     <h3 className="font-medium text-gray-900 mb-3">
                                       Sign in to view full message
                                     </h3>
@@ -558,7 +558,7 @@ export const RedditDMSection: React.FC<
                   </div>
                 )}
 
-                <div className="flex justify-center space-x-4 mt-6">
+                <div className="flex justify-start space-x-4 mt-6">
                   <Button
                     variant="outline"
                     onClick={() => setResults([])}
@@ -596,7 +596,7 @@ export const RedditDMSection: React.FC<
                     name="productName"
                     value={fields.productName}
                     onChange={handleChange}
-                    placeholder="And your product name"
+                    placeholder="Add your product name"
                     required
                     leftIcon={<BoltIcon className="h-5 w-5 text-gray-400" />}
                     className="form-input-custom transition-all duration-200 focus:ring-0 focus:outline-none border-0 bg-gray-50 rounded-lg h-12 shadow-sm"
@@ -607,7 +607,7 @@ export const RedditDMSection: React.FC<
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="bg-orange-600 font-jost  hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-200 hover:scale-105"
+                    className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105"
                   >
                     {loading ? "Processing..." : "Unlock Your Reddit Market"}
                   </Button>
@@ -618,7 +618,7 @@ export const RedditDMSection: React.FC<
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center pt-2">
+                <div className="flex items-center justify-start pt-2">
                   <button
                     type="button"
                     className="flex items-center text-orange-600 hover:text-orange-700 text-sm font-medium transition-colors duration-200"

@@ -1,18 +1,23 @@
-import React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none transform hover:scale-105 active:scale-95",
+  "inline-flex items-center justify-center text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none transform hover:scale-105 active:scale-95",
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
-        outline: "border border-gray-300 hover:bg-gray-50 hover:text-gray-900 shadow-sm hover:shadow-md",
-        ghost: "hover:bg-gray-100 hover:text-gray-900",
-        destructive: "bg-red-600 text-white hover:bg-red-700 shadow-lg hover:shadow-xl",
-        reddit: "bg-[#FF4500] text-white hover:bg-[#e03d00] shadow-lg hover:shadow-xl",
-        success: "bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-xl",
+        default:
+          "rounded-md bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-xl",
+        outline:
+          "rounded-md border border-gray-300 hover:bg-gray-50 hover:text-gray-900 shadow-sm hover:shadow-md",
+        ghost: "rounded-md hover:bg-gray-100 hover:text-gray-900",
+        destructive:
+          "rounded-md bg-red-600 text-white hover:bg-red-700 shadow-lg hover:shadow-xl",
+        reddit:
+          "rounded-md bg-[#FF4500] text-white hover:bg-[#e03d00] shadow-lg hover:shadow-xl",
+        success:
+          "rounded-md bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-xl",
       },
       size: {
         sm: "h-8 px-3 text-xs",
@@ -37,7 +42,20 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, loading, leftIcon, rightIcon, children, disabled, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      loading,
+      leftIcon,
+      rightIcon,
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <button
         className={cn(buttonVariants({ variant, size, className }))}
@@ -58,4 +76,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = "Button";
 
-export { Button, buttonVariants }; 
+export { Button, buttonVariants };

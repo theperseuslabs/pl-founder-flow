@@ -55,7 +55,9 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
   };
 
   return (
-    <nav className={`bg-white border-b border-gray-200 shadow-sm ${className}`}>
+    <nav
+      className={`mesh-gradient-static border-b border-white/20 shadow-lg backdrop-blur-sm ${className}`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -66,9 +68,8 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
               className="h-11 w-auto transition-transform duration-200 group-hover:scale-105"
             />
             <span
-              className="text-gray-900 transition-colors duration-200 group-hover:text-blue-600"
+              className="text-gray-800 transition-colors duration-200 group-hover:text-blue-800"
               style={{
-                fontFamily: "Jost, sans-serif",
                 fontWeight: 600,
                 fontSize: "18px",
                 lineHeight: "11px",
@@ -83,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
           {/* Hamburger Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200"
+            className="md:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-white/20 transition-colors duration-200"
           >
             {isMobileMenuOpen ? (
               <XMarkIcon className="h-6 w-6" />
@@ -100,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                 (window.location.href =
                   "https://easymarketingautomations.com/blog/")
               }
-              className="transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+              className="transition-all duration-200 hover:bg-white/20 hover:text-blue-800"
             >
               Blog
             </Button>
@@ -108,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
               <Button
                 variant="ghost"
                 onClick={() => (window.location.href = "/dashboard")}
-                className="transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                className="transition-all duration-200 hover:bg-white/20 hover:text-blue-800"
               >
                 Dashboard
               </Button>
@@ -121,13 +122,13 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
             ) : auth.user ? (
               <Dropdown
                 trigger={
-                  <div className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 rounded-md p-2 transition-all duration-200 hover:scale-105">
+                  <div className="flex items-center space-x-2 cursor-pointer hover:bg-white/20 rounded-md p-2 transition-all duration-200 hover:scale-105">
                     <img
                       src={auth.user.photoURL || "/default-avatar.png"}
                       alt={auth.user.displayName || "User"}
                       className="h-8 w-8 rounded-full transition-transform duration-200 hover:scale-110"
                     />
-                    <span className="text-sm font-medium text-gray-900 hidden lg:block">
+                    <span className="text-sm font-medium text-gray-800 hidden lg:block">
                       {auth.user.displayName || auth.user.email}
                     </span>
                   </div>
@@ -186,7 +187,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="md:hidden border-t border-white/20 mesh-gradient-static">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Button
                 variant="ghost"
