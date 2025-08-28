@@ -56,7 +56,7 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
   return (
     <nav
-      className={`mesh-gradient-static border-b border-white/20 shadow-lg backdrop-blur-sm ${className}`}
+      className={`border-b border-white/20 shadow-lg backdrop-blur-sm ${className}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">

@@ -277,7 +277,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-white">
       <Clarity />
 
       {/* Animated Background Elements */}
@@ -420,7 +420,7 @@ function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Header */}
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h2 className="text-xl md:text-xl text-white mb-4">
               Your Reddit Growth Engine.
             </h2>
             <h3 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-orange-400 bg-clip-text text-transparent mb-8">
@@ -428,7 +428,7 @@ function App() {
             </h3>
           </div>
 
-          <div className="flex justify-center mb-16">
+          <div className="flex justify-center mb-8">
             <img
               src="/how-it-works-infographic.png"
               alt="How It Works"
@@ -436,8 +436,8 @@ function App() {
             />
           </div>
           {/* Detailed Steps */}
-          <div className="space-y-12">
-            <div className="rounded-2xl p-8">
+          <div className="space-y-6">
+            <div className="rounded-2xl p-4">
               <h3 className="text-2xl font-bold text-purple-300 mb-4">
                 1. Distill Your Mission.
               </h3>
@@ -448,7 +448,7 @@ function App() {
               </p>
             </div>
 
-            <div className="rounded-2xl p-8">
+            <div className="rounded-2xl p-4">
               <h3 className="text-2xl font-bold text-purple-300 mb-4">
                 2. Receive Your Playbook.
               </h3>
@@ -460,7 +460,7 @@ function App() {
               </p>
             </div>
 
-            <div className="rounded-2xl p-8">
+            <div className="rounded-2xl p-4">
               <h3 className="text-2xl font-bold text-orange-300 mb-4">
                 3. Activate Automation.
               </h3>
@@ -472,8 +472,8 @@ function App() {
               </p>
             </div>
           </div>
-          <div className="text-center mt-16">
-            <p className="text-2xl font-semibold text-blue-400">
+          <div className="text-center py-4">
+            <p className="text-lg text-center underline font-semibold text-blue-400">
               Why don't we try it once for your product?
             </p>
           </div>
