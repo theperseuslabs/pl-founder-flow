@@ -2,8 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom placeholder styling for form inputs */
+.form-input-custom::placeholder {
+  font-family: 'Jost', sans-serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 22px;
+  letter-spacing: -0.41px;
+}
+
 @layer base {
   body {
     @apply bg-white text-gray-900;
+    font-family: 'Jost', sans-serif;
+  }
+  
+  * {
+    text-align: left;
   }
 } 

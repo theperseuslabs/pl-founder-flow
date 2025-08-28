@@ -1,21 +1,26 @@
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import { AuthProvider } from '@/lib/firebase/AuthContext'
-import { Navbar } from '@/components/ui/Navbar'
-import Script from 'next/script'
+import type { Metadata } from "next";
+import { Inter, Jost } from "next/font/google";
+import "./globals.css";
+import { AuthProvider } from "@/lib/firebase/AuthContext";
+import { Navbar } from "@/components/ui/Navbar";
+import Script from "next/script";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
+const jost = Jost({
+  subsets: ["latin"],
+  weight: ["600", "800"],
+  style: ["normal"],
+});
 
 export const metadata: Metadata = {
-  title: 'Easy Marketing Automation',
-  description: 'Find and Message Your First Customers on Reddit – Instantly',
-}
+  title: "Easy Marketing Automation",
+  description: "Find and Message Your First Customers on Reddit – Instantly",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -29,12 +34,20 @@ export default function RootLayout({
           {`window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }`}
         </Script>
       </head>
-      <body className={inter.className} style={{ width: '100%', margin: 0, padding: 0 }}>
+      <body
+        className={jost.className}
+        style={{
+          width: "100%",
+          margin: 0,
+          padding: 0,
+          fontFamily: "Jost, sans-serif",
+        }}
+      >
         <AuthProvider>
           <Navbar />
           {children}
         </AuthProvider>
       </body>
     </html>
-  )
-} 
+  );
+}
