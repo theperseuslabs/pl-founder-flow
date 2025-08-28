@@ -56,184 +56,151 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
 
   return (
     <nav
-      className={`border-b border-white/20 shadow-lg backdrop-blur-sm ${className}`}
+      className={`mesh-gradient-static border-b border-white/20 shadow-lg backdrop-blur-sm ${className}`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <img
-              src="/logo.svg"
-              alt="EMA Logo"
-              className="h-11 w-auto transition-transform duration-200 group-hover:scale-105"
-            />
-            <span
-              className="text-gray-800 transition-colors duration-200 group-hover:text-blue-800"
-              style={{
-                fontWeight: 600,
-                fontSize: "18px",
-                lineHeight: "11px",
-                letterSpacing: "0px",
-                textAlign: "right",
-              }}
-            >
-              Easy Marketing Automation
-            </span>
-          </Link>
-
-          {/* Hamburger Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-white/20 transition-colors duration-200"
-          >
-            {isMobileMenuOpen ? (
-              <XMarkIcon className="h-6 w-6" />
-            ) : (
-              <Bars3Icon className="h-6 w-6" />
-            )}
-          </button>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={() =>
-                (window.location.href =
-                  "https://easymarketingautomations.com/blog/")
-              }
-              className="transition-all duration-200 hover:bg-white/20 hover:text-blue-800"
-            >
-              Blog
-            </Button>
-            {auth.user && (
-              <Button
-                variant="ghost"
-                onClick={() => (window.location.href = "/dashboard")}
-                className="transition-all duration-200 hover:bg-white/20 hover:text-blue-800"
-              >
-                Dashboard
-              </Button>
-            )}
-            {auth.loading ? (
-              <div className="flex items-center space-x-2 text-gray-500">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                <span className="text-sm">Loading...</span>
-              </div>
-            ) : auth.user ? (
-              <Dropdown
-                trigger={
-                  <div className="flex items-center space-x-2 cursor-pointer hover:bg-white/20 rounded-md p-2 transition-all duration-200 hover:scale-105">
-                    <img
-                      src={auth.user.photoURL || "/default-avatar.png"}
-                      alt={auth.user.displayName || "User"}
-                      className="h-8 w-8 rounded-full transition-transform duration-200 hover:scale-110"
-                    />
-                    <span className="text-sm font-medium text-gray-800 hidden lg:block">
-                      {auth.user.displayName || auth.user.email}
-                    </span>
-                  </div>
-                }
-                align="right"
-              >
-                <div className="p-2 border-b border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={auth.user.photoURL || "/default-avatar.png"}
-                      alt={auth.user.displayName || "User"}
-                      className="h-8 w-8 rounded-full"
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-foreground">
-                        {auth.user.displayName || "User"}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {auth.user.email}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <DropdownItem
-                  icon={<UserCircleIcon className="h-4 w-4" />}
-                  onClick={() => (window.location.href = "/dashboard")}
-                >
-                  Dashboard
-                </DropdownItem>
-                <DropdownItem
-                  icon={<Cog6ToothIcon className="h-4 w-4" />}
-                  onClick={() => {
-                    /* TODO: Settings page */
-                  }}
-                >
-                  Settings
-                </DropdownItem>
-                <DropdownItem
-                  icon={<ArrowRightOnRectangleIcon className="h-4 w-4" />}
-                  onClick={handleSignOut}
-                >
-                  Sign Out
-                </DropdownItem>
-              </Dropdown>
-            ) : (
-              <Button
-                onClick={handleSignIn}
-                variant="default"
-                className="transition-all duration-200 hover:scale-105"
-              >
-                Sign In
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-white/20 mesh-gradient-static">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  window.location.href =
-                    "https://easymarketingautomations.com/blog/";
-                  setIsMobileMenuOpen(false);
+      <div className="w-full lg:pl-[20%] lg:pr-[20%]">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-3 group">
+              <img
+                src="/logo.svg"
+                alt="EMA Logo"
+                className="h-11 w-auto transition-transform duration-200 group-hover:scale-105"
+              />
+              <span
+                className="text-gray-800 transition-colors duration-200 group-hover:text-blue-800 text-lg lg:text-xl"
+                style={{
+                  fontWeight: 600,
+                  lineHeight: "11px",
+                  letterSpacing: "0px",
+                  textAlign: "right",
                 }}
-                className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+              >
+                Easy Marketing Automations
+              </span>
+            </Link>
+
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-white/20 transition-colors duration-200"
+            >
+              {isMobileMenuOpen ? (
+                <XMarkIcon className="h-6 w-6" />
+              ) : (
+                <Bars3Icon className="h-6 w-6" />
+              )}
+            </button>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                onClick={() =>
+                  (window.location.href =
+                    "https://easymarketingautomations.com/blog/")
+                }
+                className="transition-all duration-200 hover:bg-white/20 hover:text-blue-800"
               >
                 Blog
               </Button>
               {auth.user && (
                 <Button
                   variant="ghost"
-                  onClick={() => {
-                    window.location.href = "/dashboard";
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                  onClick={() => (window.location.href = "/dashboard")}
+                  className="transition-all duration-200 hover:bg-white/20 hover:text-blue-800"
                 >
                   Dashboard
                 </Button>
               )}
               {auth.loading ? (
-                <div className="flex items-center space-x-2 text-gray-500 px-3 py-2">
+                <div className="flex items-center space-x-2 text-gray-500">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                   <span className="text-sm">Loading...</span>
                 </div>
               ) : auth.user ? (
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                  <div className="flex items-center space-x-2 px-3 py-2">
-                    <img
-                      src={auth.user.photoURL || "/default-avatar.png"}
-                      alt={auth.user.displayName || "User"}
-                      className="h-8 w-8 rounded-full"
-                    />
-                    <div>
-                      <div className="text-sm font-medium text-foreground">
-                        {auth.user.displayName || "User"}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {auth.user.email}
+                <Dropdown
+                  trigger={
+                    <div className="flex items-center space-x-2 cursor-pointer hover:bg-white/20 rounded-md p-2 transition-all duration-200 hover:scale-105">
+                      <img
+                        src={auth.user.photoURL || "/default-avatar.png"}
+                        alt={auth.user.displayName || "User"}
+                        className="h-8 w-8 rounded-full transition-transform duration-200 hover:scale-110"
+                      />
+                      <span className="text-sm font-medium text-gray-800 hidden lg:block">
+                        {auth.user.displayName || auth.user.email}
+                      </span>
+                    </div>
+                  }
+                  align="right"
+                >
+                  <div className="p-2 border-b border-gray-200">
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={auth.user.photoURL || "/default-avatar.png"}
+                        alt={auth.user.displayName || "User"}
+                        className="h-8 w-8 rounded-full"
+                      />
+                      <div>
+                        <div className="text-sm font-medium text-foreground">
+                          {auth.user.displayName || "User"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {auth.user.email}
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <DropdownItem
+                    icon={<UserCircleIcon className="h-4 w-4" />}
+                    onClick={() => (window.location.href = "/dashboard")}
+                  >
+                    Dashboard
+                  </DropdownItem>
+                  <DropdownItem
+                    icon={<Cog6ToothIcon className="h-4 w-4" />}
+                    onClick={() => {
+                      /* TODO: Settings page */
+                    }}
+                  >
+                    Settings
+                  </DropdownItem>
+                  <DropdownItem
+                    icon={<ArrowRightOnRectangleIcon className="h-4 w-4" />}
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </DropdownItem>
+                </Dropdown>
+              ) : (
+                <Button
+                  onClick={handleSignIn}
+                  variant="default"
+                  className="transition-all duration-200 hover:scale-105"
+                >
+                  Sign In
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-white/20 mesh-gradient-static">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    window.location.href =
+                      "https://easymarketingautomations.com/blog/";
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                >
+                  Blog
+                </Button>
+                {auth.user && (
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -242,47 +209,81 @@ export const Navbar: React.FC<NavbarProps> = ({ className }) => {
                     }}
                     className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
                   >
-                    <UserCircleIcon className="h-4 w-4 mr-2" />
                     Dashboard
                   </Button>
+                )}
+                {auth.loading ? (
+                  <div className="flex items-center space-x-2 text-gray-500 px-3 py-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    <span className="text-sm">Loading...</span>
+                  </div>
+                ) : auth.user ? (
+                  <div className="border-t border-gray-200 pt-2 mt-2">
+                    <div className="flex items-center space-x-2 px-3 py-2">
+                      <img
+                        src={auth.user.photoURL || "/default-avatar.png"}
+                        alt={auth.user.displayName || "User"}
+                        className="h-8 w-8 rounded-full"
+                      />
+                      <div>
+                        <div className="text-sm font-medium text-foreground">
+                          {auth.user.displayName || "User"}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {auth.user.email}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        window.location.href = "/dashboard";
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                      <UserCircleIcon className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        // TODO: Settings page
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                      <Cog6ToothIcon className="h-4 w-4 mr-2" />
+                      Settings
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                      <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                ) : (
                   <Button
-                    variant="ghost"
                     onClick={() => {
-                      // TODO: Settings page
+                      handleSignIn();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
+                    variant="default"
+                    className="w-full transition-all duration-200 hover:scale-105"
                   >
-                    <Cog6ToothIcon className="h-4 w-4 mr-2" />
-                    Settings
+                    Sign In
                   </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full justify-start transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
-                  >
-                    <ArrowRightOnRectangleIcon className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => {
-                    handleSignIn();
-                    setIsMobileMenuOpen(false);
-                  }}
-                  variant="default"
-                  className="w-full transition-all duration-200 hover:scale-105"
-                >
-                  Sign In
-                </Button>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </nav>
   );

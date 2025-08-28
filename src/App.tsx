@@ -322,40 +322,41 @@ function App() {
 
       {/* Hero Section */}
       <section className="relative mesh-gradient py-6 overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-left relative z-10">
-          <motion.h1
-            className="text-gray-800 mb-6"
-            variants={heroVariants}
-            initial="hidden"
-            animate="visible"
-            style={{
-              fontWeight: 900,
-              fontSize: "32px",
-              lineHeight: "100%",
-              letterSpacing: "0px",
-              textAlign: "left",
-            }}
-          >
-            Reddit Marketing.
-            <br />
-            Solved.
-          </motion.h1>
+        <div className="w-full text-left relative z-10 lg:pl-[20%] lg:pr-[20%]">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            <motion.h1
+              className="text-gray-800 mb-6 text-3xl md:text-4xl lg:text-6xl"
+              variants={heroVariants}
+              initial="hidden"
+              animate="visible"
+              style={{
+                fontWeight: 900,
+                lineHeight: "100%",
+                letterSpacing: "0px",
+                textAlign: "left",
+              }}
+            >
+              Reddit Marketing.
+              <br />
+              Solved.
+            </motion.h1>
 
-          <motion.p
-            className="text-l text-gray-700 mb-8"
-            variants={itemVariants}
-            initial="hidden"
-            animate="visible"
-            style={{ textAlign: "left" }}
-          >
-            Just paste your product's URL.{" "}
-            <span className="text-red-700 font-semibold">EMA</span>, our AI,
-            finds your customers and top subreddits, starts the conversations,
-            and builds meaningful engagement.{" "}
-            <span className="text-blue-800 font-semibold">
-              All while you are in control.
-            </span>
-          </motion.p>
+            <motion.p
+              className="text-lg md:text-xl lg:text-2xl text-gray-700 mb-8"
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+              style={{ textAlign: "left" }}
+            >
+              Just paste your product's URL.{" "}
+              <span className="text-red-700">EMA</span>, our AI, finds your
+              customers and top subreddits, starts the conversations, and builds
+              meaningful engagement.{" "}
+              <span className="text-blue-800 font-semibold">
+                All while you are in control.
+              </span>
+            </motion.p>
+          </div>
         </div>
       </section>
 
@@ -417,65 +418,75 @@ function App() {
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,#8b5cf6_0%,transparent_50%)]"></div>
         </div>
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-xl md:text-xl text-white mb-4">
-              Your Reddit Growth Engine.
-            </h2>
-            <h3 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-orange-400 bg-clip-text text-transparent mb-8">
-              Activated in 3 Simple Steps.
-            </h3>
-          </div>
-
-          <div className="flex justify-center mb-8">
-            <img
-              src="/how-it-works-infographic.png"
-              alt="How It Works"
-              className="w-full h-auto"
-            />
-          </div>
-          {/* Detailed Steps */}
-          <div className="space-y-6">
-            <div className="rounded-2xl p-4">
-              <h3 className="text-2xl font-bold text-purple-300 mb-4">
-                1. Distill Your Mission.
+        <div className="w-full relative z-10 lg:pl-[20%] lg:pr-[20%]">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="text-left mb-8">
+              <h2 className="text-xl md:text-2xl lg:text-3xl text-white mb-4">
+                Your Reddit Growth Engine.
+              </h2>
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-400 via-purple-400 to-orange-400 bg-clip-text text-transparent">
+                Activated in 3 Simple Steps.
               </h3>
-              <p className="text-gray-300 text-lg leading-relaxed">
-                Provide your URL and your #1 goal. Our AI instantly synthesizes
-                your product's value proposition and aligns every action to that
-                core objective. This is your mission control, approved by you.
-              </p>
             </div>
 
-            <div className="rounded-2xl p-4">
-              <h3 className="text-2xl font-bold text-purple-300 mb-4">
-                2. Receive Your Playbook.
-              </h3>
-              <p className="text-gray-300 text-lg leading-relaxed">
-                Instantly, our AI scans Reddit and builds your custom strategy.
-                It reveals the most valuable subreddits, identifies the
-                potential customers and key influencers, crafts the exact,
-                human-like words to spark genuine conversations.
-              </p>
+            <div className="flex justify-start mb-8">
+              <img
+                src="/how-it-works-infographic.jpg"
+                alt="How It Works"
+                //max image of 700px
+                className="w-full h-auto max-w-3xl"
+                style={{
+                  maskImage:
+                    "radial-gradient(ellipse at center, black 80%, transparent 100%)",
+                  WebkitMaskImage:
+                    "radial-gradient(ellipse at center, black 80%, transparent 100%)",
+                }}
+              />
             </div>
+            {/* Detailed Steps */}
+            <div className="space-y-6">
+              <div className="rounded-2xl p-4">
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-purple-300 mb-4">
+                  1. Distill Your Mission.
+                </h3>
+                <p className="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed">
+                  Provide your URL and your #1 goal. Our AI instantly
+                  synthesizes your product's value proposition and aligns every
+                  action to that core objective. This is your mission control,
+                  approved by you.
+                </p>
+              </div>
 
-            <div className="rounded-2xl p-4">
-              <h3 className="text-2xl font-bold text-orange-300 mb-4">
-                3. Activate Automation.
-              </h3>
-              <p className="text-gray-300 text-lg leading-relaxed">
-                You are the strategist. Set the frequency. If needed, adjust the
-                tone. Approve the content. Deploy your growth engine with
-                complete confidence, knowing you have the final word on
-                everything that goes out.
+              <div className="rounded-2xl p-4">
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-purple-300 mb-4">
+                  2. Receive Your Playbook.
+                </h3>
+                <p className="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed">
+                  Instantly, our AI scans Reddit and builds your custom
+                  strategy. It reveals the most valuable subreddits, identifies
+                  the potential customers and key influencers, crafts the exact,
+                  human-like words to spark genuine conversations.
+                </p>
+              </div>
+
+              <div className="rounded-2xl p-4">
+                <h3 className="text-2xl font-bold text-orange-300 mb-4">
+                  3. Activate Automation.
+                </h3>
+                <p className="text-gray-300 text-lg md:text-xl lg:text-2xl leading-relaxed">
+                  You are the strategist. Set the frequency. If needed, adjust
+                  the tone. Approve the content. Deploy your growth engine with
+                  complete confidence, knowing you have the final word on
+                  everything that goes out.
+                </p>
+              </div>
+            </div>
+            <div className="text-left py-4">
+              <p className="text-lg md:text-xl lg:text-2xl text-left underline font-semibold text-blue-400">
+                Why don't we try it once for your product?
               </p>
             </div>
-          </div>
-          <div className="text-center py-4">
-            <p className="text-lg text-center underline font-semibold text-blue-400">
-              Why don't we try it once for your product?
-            </p>
           </div>
         </div>
       </section>

@@ -13,7 +13,7 @@ const robotoCondensed = Roboto_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Easy Marketing Automation",
+  title: "Easy Marketing Automations",
   description: "Find and Message Your First Customers on Reddit – Instantly",
 };
 
